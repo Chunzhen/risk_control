@@ -1,0 +1,51 @@
+#! /usr/bin/env python
+# -*- coding:utf-8 -*-
+
+import sys
+import os
+
+from config import Config
+import threading
+from sklearn import metrics
+from sklearn.metrics import roc_curve, auc
+
+class Mboost_thread(threading.Thread):
+	def __init__(self,x_train, y_train, x_test, y_test, test_uid):
+		threading.Thread.__init__(self)
+		self.x_train=x_train
+		self.y_train=y_train
+		self.x_test=x_test
+		self.y_test=y_test
+		self.test_uid=test_uid
+
+		self.predict=[]
+		self.auc_score=0
+		pass
+
+	def run(self):
+		self._run()
+		pass
+
+	def _run(self,clf):
+		x_train=self.x_train
+		y_train=self.y_train
+		x_test=self.x_test
+		y_test=self.y_test
+		test_uid=self.test_uid
+
+		clf.fit(x_train,y_train)
+		try:
+			#分类器输出probability
+			y_pred=clf.predict_proba(x_test)
+			y_pred=y_pred[:,1]
+		except:	
+			#回归器直接输出预测值
+			y_pred=clf.predict(x_test)
+
+		#计算一折的AUC
+		auc_score=metrics.roc_auc_score(y_test,y_pred)
+		self.predict=y_pred
+		self.auc_score=auc_score
+
+
+		
