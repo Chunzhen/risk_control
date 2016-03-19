@@ -100,25 +100,20 @@ class Mboost(object):
 			x_train=np.vstack((train_1,train_0))
 			x_test=np.vstack((test_1,test_0))
 
-			clf.fit(x_train,y_train)
-			try:
-				#分类器输出probability
-				y_pred=clf.predict_proba(x_test)
-				y_pred=y_pred[:,1]
-			except:	
-				#回归器直接输出预测值
-				y_pred=clf.predict(x_test)
+			threads.append(Mboost_thread(clf,x_train, y_train, x_test,y_test,test_uid))
 
-			threads.append(Mboost_thread(x_train, y_train, x_test,y_test,test_uid))
+		for thread in threads:
+			thread.start()
 
-			#计算一折的AUC
-			auc_score=metrics.roc_auc_score(y_test,y_pred)
-			#保存每一折的预测结果
-			predicts.extend((y_pred).tolist())
-			test_uids.extend(test_uid.tolist())
+		for thread in threads:
+			thread.join()
 
-			print auc_score
+		for thread in threads:
+			auc_score=thread.auc_score
+			predicts.extend(thread.predict)
+			test_uids.extend(thread.test_uid)
 			scores.append(auc_score)
+			print auc_score		
 
 		#保存输出结果
 		self.output_level_train(predicts,test_uids,scores,level,name)
