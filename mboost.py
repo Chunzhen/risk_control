@@ -17,6 +17,7 @@ from sklearn.metrics import roc_curve, auc
 import xgboost as xgb
 
 from mboost_thread import Mboost_thread
+from xgb_mboost_thread import Xgb_mboost_thread
 
 class Mboost(object):
 	"""
@@ -139,6 +140,8 @@ class Mboost(object):
 		scores=[]
 		part_uids=[]
 
+		threads=[]
+
 		for i in range(n_folds):
 			train_index_0,test_index_0=f0[i][0],f0[i][1]
 			train_index_1,test_index_1=f1[i][0],f1[i][1]
@@ -166,15 +169,24 @@ class Mboost(object):
 			dtrain=xgb.DMatrix(x_train,label=y_train)
 			watchlist=[(dtrain,'train')]
 
-			model=xgb.train(params,dtrain,num_boost_round=round,evals=watchlist,verbose_eval=False)
-			y_pred=model.predict(dtest)
+			threads.append(Xgb_mboost_thread(dtrain,y_train,dtest,y_test,test_uid,watchlist,params,round))
 
-			auc_score=metrics.roc_auc_score(y_test,y_pred)
+		
+		for thread in threads:
+			thread.start()
 
-			print auc_score
+		for thread in threads:
+			thread.join()
+
+		for thread in threads:
+			auc_score=thread.auc_score
+			predicts.extend(thread.predict)
+			test_uids.extend(thread.test_uid)
 			scores.append(auc_score)
+			print auc_score			
 
-		#self.output_part_uid(part_uids,level,name)
+		#保存输出结果
+		self.output_level_train(predicts,test_uids,scores,level,name)
 		print name+" average scores:",np.mean(scores)
 
 	def output_level_train(self,predicts,test_uids,scores,level,name):	

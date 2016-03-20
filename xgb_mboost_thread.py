@@ -8,16 +8,19 @@ from config import Config
 import threading
 from sklearn import metrics
 from sklearn.metrics import roc_curve, auc
-
-class Mboost_thread(threading.Thread):
-	def __init__(self,clf,x_train, y_train, x_test, y_test, test_uid):
+import xgboost as xgb
+class Xgb_mboost_thread(threading.Thread):
+	def __init__(self,x_train, y_train, x_test, y_test, test_uid,watchlist, params, round):
 		threading.Thread.__init__(self)
-		self.clf=clf
 		self.x_train=x_train
 		self.y_train=y_train
 		self.x_test=x_test
 		self.y_test=y_test
 		self.test_uid=test_uid
+
+		self.watchlist=watchlist
+		self.params=params
+		self.round=round
 
 		self.predict=[]
 		self.auc_score=0
@@ -28,21 +31,17 @@ class Mboost_thread(threading.Thread):
 		pass
 
 	def _run(self):
-		clf=self.clf
 		x_train=self.x_train
 		y_train=self.y_train
 		x_test=self.x_test
 		y_test=self.y_test
 		test_uid=self.test_uid
+		watchlist=self.watchlist
+		params=self.params
+		round=self.round
 
-		clf.fit(x_train,y_train)
-		try:
-			#分类器输出probability
-			y_pred=clf.predict_proba(x_test)
-			y_pred=y_pred[:,1]
-		except:	
-			#回归器直接输出预测值
-			y_pred=clf.predict(x_test)
+		model=xgb.train(params,x_train,num_boost_round=round,evals=watchlist,verbose_eval=False)
+		y_pred=model.predict(x_test)
 
 		#计算一折的AUC
 		auc_score=metrics.roc_auc_score(y_test,y_pred)
