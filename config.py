@@ -28,6 +28,12 @@ class Config(object):
 		self.path_uid=''
 
 		"""
+		Analysis 输出的分析文件
+		"""
+		self.path_analysis=self.path+'analysis/'
+
+
+		"""
 		Preprocessing 输出的特征文件
 		"""
 

@@ -17,13 +17,6 @@ class Preprocessing(object):
 		"""
 		特征处理
 		"""
-		data_instance=Load_origin_data(self.config)
-		
-		feature_type=data_instance.feature_type()
-		train_X=data_instance.load_train_X()
-		predict_X=data_instance.load_predict_X()
-
-		return feature_type, train_X, predict_X
 		pass
 
 	def scale_func(self):

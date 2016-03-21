@@ -6,6 +6,7 @@ import os
 
 from config import Config
 from load_origin_data import Load_origin_data
+from analysis import Analysis
 
 class Mtest(object):
 	def __init__(self):
@@ -21,6 +22,7 @@ class Mtest(object):
 	def load_train_X_test(self):
 		instance=Load_origin_data(self.config)
 		reader_category,reader_numeric=instance.load_train_X()
+		#print reader_category
 		print reader_category.shape
 		print reader_numeric.shape
 
@@ -46,6 +48,20 @@ class Mtest(object):
 		uid=instance.load_predict_uid()
 		print len(uid)
 
+	def feature_scale_test(self):
+		instance=Analysis(self.config)
+		scales_categroy,scales_numeric=instance.features_scale('train')
+		print len(scales_categroy)
+		print len(scales_numeric)
+
+	def output_features_scale_test(self):
+		instance=Analysis(self.config)
+		instance.output_features_scale('test')
+
+	def print_features_scale_test(self):
+		instance=Analysis(self.config)
+		instance.print_features_scale('train')
+
 	def run(self,n):
 		if n==0:
 			self.load_feature_type_test()
@@ -59,11 +75,19 @@ class Mtest(object):
 			self.load_train_uid_test()
 		elif n==5:
 			self.load_predict_uid_test()
+		elif n==6:
+			self.feature_scale_test()
+		elif n==7:
+			self.output_features_scale_test()
+		elif n==8:
+			self.print_features_scale_test()
 
 def main():
 	test_instance=Mtest()
-	test_instance.run(5)
+	test_instance.run(8)
 	pass
 
 if __name__ == '__main__':
+	reload(sys)
+	sys.setdefaultencoding('utf8')
 	main()
