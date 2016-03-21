@@ -16,23 +16,62 @@ class Load_origin_data(object):
 		"""
 		读取原始特征列的类型(numeric or category)
 		"""
-		pass
+		features=pd.read_csv(self.config.path_feature_type,iterator=False,delimiter=',',encoding='utf-8')
+		features_category=[]
+		features_numeric=[]
+		for i,t in enumerate(features['Index']):
+			if features['Idx'][i]=='target':
+				continue
+			if t=='Categorical':
+				features_category.append(features['Idx'][i])
+			else:
+				features_numeric.append(features['Idx'][i])
+		return features_category,features_numeric
 
 	def load_train_X(self):
 		"""
 		读取训练集原始特征列
 		"""
-		pass
+		features_category,features_numeric=self.load_feature_type()
+		reader_category=pd.read_csv(self.config.path_origin_train_x,iterator=False,delimiter=',',usecols=tuple(features_category),encoding='utf-8')
+		reader_numeric=pd.read_csv(self.config.path_origin_train_x,iterator=False,delimiter=',',usecols=tuple(features_numeric),encoding='utf-8')
+		return reader_category,reader_numeric
 
 	def load_predict_X(self):
 		"""
 		读取预测集原始特征列
 		"""
-		pass
+		features_category,features_numeric=self.load_feature_type()
+		reader_category=pd.read_csv(self.config.path_origin_predict_x,iterator=False,delimiter=',',usecols=tuple(features_category),encoding='utf-8')
+		reader_numeric=pd.read_csv(self.config.path_origin_predict_x,iterator=False,delimiter=',',usecols=tuple(features_numeric),encoding='utf-8')
+		return reader_category,reader_numeric
 
 	def load_train_y(self):
 		"""
 		读取训练集的类标签
 		"""
-		pass
+		y_reader=pd.read_csv(self.config.path_origin_train_x,iterator=False,delimiter=',',usecols=tuple(['target']),encoding='utf-8')
+		y=np.array(y_reader,dtype='int')
+		y=np.ravel(y)
+		return y
+
+	def load_train_uid(self):
+		"""
+		读取训练集uid
+		"""
+		uid_reader=pd.read_csv(self.config.path_origin_train_x,iterator=False,delimiter=',',usecols=tuple(['Idx']),encoding='utf-8')
+		uid=np.array(uid_reader,dtype='int')
+		uid=np.ravel(uid)
+		return uid
+
+	def load_predict_uid(self):
+		"""
+		读取测试集的uid
+		"""
+		uid_reader=pd.read_csv(self.config.path_origin_predict_x,iterator=False,delimiter=',',usecols=tuple(['Idx']),encoding='utf-8')
+		uid=np.array(uid_reader,dtype='int')
+		uid=np.ravel(uid)
+		return uid
+
+
 
