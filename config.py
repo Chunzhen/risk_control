@@ -12,7 +12,7 @@ class Config(object):
 		"""
 		基本配置信息
 		"""
-		self.path='C:/Users/chunzhen/Desktop/mbl/data/risk_control/'
+		self.path='F:/contest/risk_control/data/'
 		self.path_feature_type=self.path+'feature_type.csv'
 		self.path_origin_train_x=self.path+'train/master.csv'
 		#额外的文件
@@ -36,6 +36,7 @@ class Config(object):
 		"""
 		Preprocessing 输出的特征文件
 		"""
+		self.path_location=self.path+'location/'
 
 		"""
 		fold random state

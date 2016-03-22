@@ -7,11 +7,15 @@ import os
 from config import Config
 from load_origin_data import Load_origin_data
 from analysis import Analysis
+from preprocessing import Preprocessing
 
 class Mtest(object):
 	def __init__(self):
 		self.config=Config()
 		pass
+	"""
+	load_origin_data 测试函数
+	"""
 	def load_feature_type_test(self):
 		instance=Load_origin_data(self.config)
 		features_category,features_numeric=instance.load_feature_type()
@@ -48,6 +52,9 @@ class Mtest(object):
 		uid=instance.load_predict_uid()
 		print len(uid)
 
+	"""
+	analysis 测试函数
+	"""
 	def feature_scale_test(self):
 		instance=Analysis(self.config)
 		scales_categroy,scales_numeric=instance.features_scale('train')
@@ -61,6 +68,21 @@ class Mtest(object):
 	def print_features_scale_test(self):
 		instance=Analysis(self.config)
 		instance.print_features_scale('train')
+
+	def print_features_scale_separate_test(self):
+		instance=Analysis(self.config)
+		instance.print_features_scale_separate()
+
+	"""
+	preprocessing 测试函数
+	"""
+	def load_data_test(self):
+		instance=Preprocessing(self.config)
+		instance.load_data()
+		pass
+	def get_location_test(self):
+		instance=Preprocessing(self.config)
+		instance.get_location()
 
 	def run(self,n):
 		if n==0:
@@ -81,10 +103,16 @@ class Mtest(object):
 			self.output_features_scale_test()
 		elif n==8:
 			self.print_features_scale_test()
+		elif n==9:
+			self.print_features_scale_separate_test()
+		elif n==10:
+			self.load_data_test()
+		elif n==11:
+			self.get_location_test()
 
 def main():
 	test_instance=Mtest()
-	test_instance.run(8)
+	test_instance.run(11)
 	pass
 
 if __name__ == '__main__':

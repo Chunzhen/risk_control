@@ -55,6 +55,25 @@ class Load_origin_data(object):
 		y=np.ravel(y)
 		return y
 
+	def load_train_X_separate(self):
+		y=self.load_train_y()
+		reader_category,reader_numeric=self.load_train_X()
+		zero=[]
+		one=[]
+		for v in y:
+			if v==0:
+				zero.append(True)
+				one.append(False)
+			else:
+				zero.append(False)
+				one.append(True)
+
+		reader_one_category=reader_category[one]
+		reader_zero_category=reader_category[zero]
+		reader_one_numeric=reader_numeric[one]
+		reader_zero_numeric=reader_numeric[zero]
+		return reader_one_category,reader_one_numeric,reader_zero_category,reader_zero_numeric
+
 	def load_train_uid(self):
 		"""
 		读取训练集uid
