@@ -22,7 +22,7 @@ class Config(object):
 		self.path_origin_predict_x=self.path+'test/master.csv'
 		self.path_origin_predict_loginfo=self.path+'test/loginfo.csv'
 		self.path_origin_predict_updateinfo=self.path+'test/updateinfo.csv'
-		#y值直接在x里卖弄
+		#y值直接在x里
 		self.path_origin_train_y=''
 		self.path_origin_predict_y=''
 		self.path_uid=''
@@ -41,7 +41,7 @@ class Config(object):
 		"""
 		fold random state
 		"""
-		self.fold_random_state=7
+		self.fold_random_state=171
 		self.n_folds=5
 
 		"""

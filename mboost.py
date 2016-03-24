@@ -102,12 +102,13 @@ class Mboost(object):
 			x_test=np.vstack((test_1,test_0))
 
 			threads.append(Mboost_thread(clf,x_train, y_train, x_test,y_test,test_uid))
+			break
 
 		for thread in threads:
-			thread.start()
+			thread._run()
 
-		for thread in threads:
-			thread.join()
+		# for thread in threads:
+		# 	thread.join()
 
 		for thread in threads:
 			auc_score=thread.auc_score
@@ -166,12 +167,12 @@ class Mboost(object):
 			x_test=np.vstack((test_1,test_0))
 
 			dtest=xgb.DMatrix(x_test)
+			dval=xgb.DMatrix(x_test,label=y_test)
 			dtrain=xgb.DMatrix(x_train,label=y_train)
-			watchlist=[(dtrain,'train')]
+			watchlist=[(dval,'val'),(dtrain,'train')]
 
 			threads.append(Xgb_mboost_thread(dtrain,y_train,dtest,y_test,test_uid,watchlist,params,round))
 
-		
 		for thread in threads:
 			thread.start()
 
@@ -180,8 +181,8 @@ class Mboost(object):
 
 		for thread in threads:
 			auc_score=thread.auc_score
-			predicts.extend(thread.predict)
-			test_uids.extend(thread.test_uid)
+			predicts.extend(thread.predict.tolist())
+			test_uids.extend(thread.test_uid.tolist())
 			scores.append(auc_score)
 			print auc_score			
 
@@ -201,7 +202,7 @@ class Mboost(object):
 		f1=open(self.config.path_train+level+'/'+name+'.csv','wb')
 		f2=open(self.config.path_train+level+'/'+name+'_score.csv','wb')
 		for i in range(len(test_uids)):
-			f1.write(test_uids[i]+","+str(predicts[i])+"\n")
+			f1.write(str(test_uids[i])+","+str(predicts[i])+"\n")
 
 		for score in scores:
 			f2.write(str(score)+"\n")
@@ -251,7 +252,7 @@ class Mboost(object):
 		y_train=np.hstack((np.ones(len(X_1)),np.zeros(len(X_0))))
 		dtrain=xgb.DMatrix(x_train,label=y_train)
 		watchlist=[(dtrain,'train')]
-		model=xgb.train(params,dtrain,num_boost_round=round,evals=watchlist,verbose_eval=False)
+		model=xgb.train(params,dtrain,num_boost_round=round,evals=watchlist,verbose_eval=10)
 
 		dpredict=xgb.DMatrix(predict_X)
 		predict_result=model.predict(dpredict)
@@ -268,7 +269,7 @@ class Mboost(object):
 		:输出预测结果到文件
 		"""
 		f1=open(self.config.path_predict+level+'/'+name+'.csv','wb')
-		f1.write('"uid","score"\n')
+		f1.write('"Idx","score"\n')
 		for i in range(len(test_uids)):
 			f1.write(str(test_uids[i])+","+str(predicts[i])+"\n")
 		f1.close()
