@@ -26,11 +26,11 @@ class Load_scale_data(object):
 		"""
 		组合训练集多个特征文件
 		"""
-		scale='dumps2'
+		scale='dumps'
 		X=self.load_preprocessing('train', scale)
-		# scale='location'
-		# X2=self.load_preprocessing('train', scale)
-		# X=np.hstack((X,X2))
+		scale='location'
+		X2=self.load_preprocessing('train', scale)
+		X=np.hstack((X,X2))
 		print X.shape
 		return X
 	

@@ -42,8 +42,11 @@ class Run(object):
 	    'nthread':4
 	    }
 		mboost_instance=Mboost(self.config)
-		mboost_instance.xgb_level_train(level,'xgb1000',X_0,X_1,uid_0,uid_1,params,1000)
+		#mboost_instance.xgb_level_train(level,'xgb2000_dumps_location',X_0,X_1,uid_0,uid_1,params,2000)
 		#mboost_instance.level_train(RandomForestClassifier(n_estimators=500,max_depth=10,min_samples_split=20),level,'rf100',X_0,X_1,uid_0,uid_1)
+		#mboost_instance.level_train(LogisticRegression(),level,'lr_sag',X_0,X_1,uid_0,uid_1)
+		mboost_instance.level_train(GradientBoostingClassifier(n_estimators=20,max_depth=11,min_samples_split=9,learning_rate=0.02,subsample=0.7),level,'gbdt20',X_0,X_1,uid_0,uid_1)
+		
 
 	def level_one_predict(self):
 		level='one'

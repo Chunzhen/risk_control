@@ -39,10 +39,8 @@ class Preprocessing(object):
 		dumps=pd.DataFrame()
 		for feature in features_category:
 			if feature=='UserInfo_24':
-				continue
 				reader_category[feature]=reader_category[feature].apply(self._deal_userInfo_24)
 			elif feature=='UserInfo_2' or feature=='UserInfo_7' or feature=='UserInfo_4' or feature=='UserInfo_8' or feature=='UserInfo_9' or feature=='UserInfo_20' or feature=='UserInfo_19':
-				continue
 				reader_category[feature]=reader_category[feature].apply(self._deal_userinfo_normal)
 			else:
 				reader_category[feature]=reader_category[feature].apply(self._deal_nan)
@@ -91,8 +89,8 @@ class Preprocessing(object):
 
 	def output_dumps_scale(self):
 		X_train,X_predict=self.dumps_scale()
-		pd.DataFrame(X_train).to_csv(self.config.path+"train/master_dumps2.csv",seq=',',mode='wb',index=False,header=None)
-		pd.DataFrame(X_predict).to_csv(self.config.path+"test/master_dumps2.csv",seq=',',mode='wb',index=False,header=None)
+		pd.DataFrame(X_train).to_csv(self.config.path+"train/master_dumps.csv",seq=',',mode='wb',index=False,header=None)
+		pd.DataFrame(X_predict).to_csv(self.config.path+"test/master_dumps.csv",seq=',',mode='wb',index=False,header=None)
 
 	def _deal_date(self,n):
 		try:
@@ -161,17 +159,15 @@ class Preprocessing(object):
 			else:
 				continue
 
-			#tmp_dummys=pd.get_dummies(reader_province)
+			tmp_dummys=pd.get_dummies(reader_province)
 			#print tmp_dummys.shape
-			tmp_dummys=pd.get_dummies(reader_city)
+			tmp_dummys2=pd.get_dummies(reader_city)
 			
 			if i==0:
-				#dumps=np.hstack((tmp_dummys,tmp_dummys2))
-				dumps=tmp_dummys
+				dumps=np.hstack((tmp_dummys,tmp_dummys2))
 				i+=1
 			else:
-				#dumps=np.hstack((dumps,tmp_dummys,tmp_dummys2))
-				dumps=np.hstack((dumps,tmp_dummys))
+				dumps=np.hstack((dumps,tmp_dummys,tmp_dummys2))
 				i+=1
 
 		print dumps.shape

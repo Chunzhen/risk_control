@@ -102,7 +102,7 @@ class Mboost(object):
 			x_test=np.vstack((test_1,test_0))
 
 			threads.append(Mboost_thread(clf,x_train, y_train, x_test,y_test,test_uid))
-			break
+			#break
 
 		for thread in threads:
 			thread._run()
