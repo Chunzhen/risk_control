@@ -37,6 +37,7 @@ class Config(object):
 		Preprocessing 输出的特征文件
 		"""
 		self.path_location=self.path+'location/'
+		self.path_coor=self.path+'location/coordinates/'
 
 		"""
 		fold random state

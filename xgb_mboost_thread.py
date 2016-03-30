@@ -40,7 +40,7 @@ class Xgb_mboost_thread(threading.Thread):
 		params=self.params
 		round=self.round
 
-		model=xgb.train(params,x_train,num_boost_round=round,evals=watchlist,verbose_eval=False)
+		model=xgb.train(params,x_train,num_boost_round=round,evals=watchlist,verbose_eval=100)
 		y_pred=model.predict(x_test)
 
 		#计算一折的AUC

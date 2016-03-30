@@ -9,6 +9,7 @@ from load_origin_data import Load_origin_data
 from analysis import Analysis
 from preprocessing import Preprocessing
 from load_scale_data import Load_scale_data
+from loginfo import Loginfo
 
 class Mtest(object):
 	def __init__(self):
@@ -88,7 +89,7 @@ class Mtest(object):
 	def load_location_json_test(self):
 		instance=Preprocessing(self.config)
 		#instance.load_location_json('UserInfo_2')
-		instance.output_location_scale()
+		instance.output_coor_scale()
 
 	"""
 	load_scale_data 测试函数
@@ -96,6 +97,26 @@ class Mtest(object):
 	def scale_load_train_X_test(self):
 		instance=Load_scale_data(self.config)
 		instance.load_train_X()
+
+	"""
+	loginfo 测试函数
+	"""
+	def load_info_test(self):
+		instance=Loginfo(self.config)
+		instance.load_info()
+	def output_info_test(self):
+		instance=Loginfo(self.config)
+		instance.output_info2()
+	def output_category_num_test(self):
+		instance=Preprocessing(self.config)
+		instance.output_category_num_scale()
+	def get_city_rank_test(self):
+		instance=Preprocessing(self.config)
+		instance.output_city_rank()
+
+	def output_missing_scale_test(self):
+		instance=Preprocessing(self.config)
+		instance.output_missing_scale()
 
 	def run(self,n):
 		if n==0:
@@ -126,10 +147,20 @@ class Mtest(object):
 			self.scale_load_train_X_test()
 		elif n==13:
 			self.load_location_json_test()
+		elif n==14:
+			self.load_info_test()
+		elif n==15:
+			self.output_info_test()
+		elif n==16:
+			self.output_category_num_test()
+		elif n==17:
+			self.get_city_rank_test()
+		elif n==18:
+			self.output_missing_scale_test()
 
 def main():
 	test_instance=Mtest()
-	test_instance.run(13)
+	test_instance.run(10)
 	pass
 
 if __name__ == '__main__':

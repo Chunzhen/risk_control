@@ -10,6 +10,7 @@ import time
 import copy
 
 from config import Config
+from load_origin_data import Load_origin_data
 
 from sklearn.cross_validation import KFold
 from sklearn import metrics
@@ -102,7 +103,6 @@ class Mboost(object):
 			x_test=np.vstack((test_1,test_0))
 
 			threads.append(Mboost_thread(clf,x_train, y_train, x_test,y_test,test_uid))
-			#break
 
 		for thread in threads:
 			thread._run()
@@ -118,8 +118,31 @@ class Mboost(object):
 			print auc_score		
 
 		#保存输出结果
-		self.output_level_train(predicts,test_uids,scores,level,name)
+		d={}
+		for k, uid in enumerate(test_uids):
+			d[uid]=predicts[k]
+		origin_instance=Load_origin_data(self.config)
+
+		uids=origin_instance.load_train_uid()
+		predicts2=[]
+		for uid in uids:
+			predicts2.append(d[uid])
+		
+		self.output_level_train(predicts2,uids,scores,level,name)
 		print name+" average scores:",np.mean(scores)
+
+	def fpreproc(self,dtrain, dtest, param):
+		label = dtrain.get_label()
+		ratio = float(np.sum(label == 0)) / np.sum(label==1)
+		param['scale_pos_weight'] = ratio
+		return (dtrain, dtest, param)
+
+	def logregobj(preds, dtrain):
+		labels = dtrain.get_label()
+		preds = 1.0 / (1.0 + np.exp(-preds))
+		grad = preds - labels
+		hess = preds * (1.0-preds)
+		return grad, hess
 
 	def xgb_level_train(self,level,name,X_0,X_1,uid_0,uid_1,params,round):
 		"""
@@ -141,6 +164,13 @@ class Mboost(object):
 		scores=[]
 		part_uids=[]
 
+		x_train=np.vstack((X_1,X_0))
+		y_train=np.hstack((np.ones(len(X_1)),np.zeros(len(X_0))))
+		dtrain=xgb.DMatrix(x_train,label=y_train)
+
+		xgb.cv(params,dtrain,round,nfold=5,metrics={'auc'},seed=7,show_progress=20)#,fpreproc=self.fpreproc ,obj=logregobj
+		return 
+
 		threads=[]
 
 		for i in range(n_folds):
@@ -156,7 +186,7 @@ class Mboost(object):
 			test_uid_1=uid_1[test_index_1]
 			test_uid_0=uid_0[test_index_0]
 
-			train_1=np.vstack((train_1,train_1))
+			#train_1=np.vstack((train_1,train_1))
 
 			y_train=np.hstack((np.ones(len(train_1)),np.zeros(len(train_0))))		
 			y_test=np.hstack((np.ones(len(test_1)),np.zeros(len(test_0))))
@@ -171,6 +201,7 @@ class Mboost(object):
 			dtrain=xgb.DMatrix(x_train,label=y_train)
 			watchlist=[(dval,'val'),(dtrain,'train')]
 
+			#xgb.cv(params,dtrain,round,nfold=5,metrics={'auc'},seed=7,show_progress=10)
 			threads.append(Xgb_mboost_thread(dtrain,y_train,dtest,y_test,test_uid,watchlist,params,round))
 
 		for thread in threads:
@@ -187,6 +218,7 @@ class Mboost(object):
 			print auc_score			
 
 		#保存输出结果
+
 		self.output_level_train(predicts,test_uids,scores,level,name)
 		print name+" average scores:",np.mean(scores)
 
@@ -249,10 +281,12 @@ class Mboost(object):
 		"""
 		start=datetime.now()
 		x_train=np.vstack((X_1,X_0))
+		
 		y_train=np.hstack((np.ones(len(X_1)),np.zeros(len(X_0))))
+		
 		dtrain=xgb.DMatrix(x_train,label=y_train)
 		watchlist=[(dtrain,'train')]
-		model=xgb.train(params,dtrain,num_boost_round=round,evals=watchlist,verbose_eval=10)
+		model=xgb.train(params,dtrain,num_boost_round=round,evals=watchlist,verbose_eval=100)
 
 		dpredict=xgb.DMatrix(predict_X)
 		predict_result=model.predict(dpredict)

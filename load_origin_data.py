@@ -28,6 +28,17 @@ class Load_origin_data(object):
 				features_numeric.append(features['Idx'][i])
 		return features_category,features_numeric
 
+	def load_feature(self,tt):
+		"""
+		读取原始特征列的类型(numeric or category)
+		"""
+		features=pd.read_csv(self.config.path_feature_type,iterator=False,delimiter=',',encoding='utf-8')
+		r_features=[]
+		for i,t in enumerate(features['Index']):
+			if features['Idx'][i].find(tt)>=0:
+				r_features.append(features['Idx'][i])
+		return r_features
+
 	def load_train_X(self):
 		"""
 		读取训练集原始特征列
