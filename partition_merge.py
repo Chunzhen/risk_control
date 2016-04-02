@@ -28,8 +28,8 @@ class Partition_merge(object):
 
 	def level_data(self):
 		level='one'
-		clf_name='xgb2000'
-		clf_name2='gbdt20'
+		clf_name='xgb1000_master_x'
+		clf_name2='rf200'
 		#读取验证集数据
 		load_data_instance=Load_origin_data(self.config)
 			

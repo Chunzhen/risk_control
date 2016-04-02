@@ -20,36 +20,40 @@ class Load_scale_data(object):
 		读取预处理输出的特征文件
 		"""
 		X=pd.read_csv(self.config.path+ftype+'/master_'+scale+'.csv',iterator=False,delimiter=',',encoding='utf-8',header=None)
-		return np.array(X,dtype='int')
+		return np.array(X,dtype=float)
 
 
 	def load_train_X(self):
 		"""
 		组合训练集多个特征文件
 		"""
-		scale='numeric'
-		X=self.load_preprocessing('train', scale)
+		dumps=['dumps','dumps_no_location','numeric12_add_median']
+		infos=['loginfo1','loginfo_limit1','loginfo_limit3','loginfo_limit7','loginfo3']
+		updates=['updateinfo1','updateinfo_limit1','updateinfo_limit3','updateinfo_limit7','updateinfo_time']
+		others=['x','lr','category_num2','city_rank','coor','missing_scale']
+
+
+		scale='lr'
+		X2=self.load_preprocessing('train', scale)
+		X=X2[:,:len(X2[0])-1]
+		#X=np.hstack((X,X2))
 		print X.shape
 
-		# scale='category'
+		scale='WeblogInfo_weight'
+		X2=self.load_preprocessing('train', scale)
+		#X=X2
+		X=np.hstack((X,X2))
+		print X.shape
+
+		# scale='UserInfo_weight'
 		# X2=self.load_preprocessing('train', scale)
-		# X2=X2[:,1:]
+		# #X=X2
 		# X=np.hstack((X,X2))
 		# print X.shape
 
-		# scale='location3'
+		# scale='coor'
 		# X2=self.load_preprocessing('train', scale)
-		# X2=X2[:,1:]
-		# X=np.hstack((X,X2))
-		# print X.shape
-
-		# scale='category_num2'
-		# X2=self.load_preprocessing('train', scale)
-		# X=np.hstack((X,X2))
-		# print X.shape
-
-		# scale='city_rank'
-		# X2=self.load_preprocessing('train', scale)
+		# #X=X2
 		# X=np.hstack((X,X2))
 		# print X.shape
 
@@ -58,89 +62,10 @@ class Load_scale_data(object):
 		# X=np.hstack((X,X2))
 		# print X.shape
 
-		# scale='loginfo1'
-		# X2=self.load_preprocessing('train', scale)
-		# #X=X2
-		# X2=X2[:,1:]
-		# X=np.hstack((X,X2))
-		# print X.shape
-
-		# scale='loginfo_limit1'
-		# X2=self.load_preprocessing('train', scale)
-		# X2=X2[:,1:]
-		# X=np.hstack((X,X2))
-		# print X.shape
-
-		# scale='loginfo_limit3'
-		# X2=self.load_preprocessing('train', scale)
-		# X2=X2[:,1:]
-		# X=np.hstack((X,X2))
-		# print X.shape
-
-		# scale='loginfo_limit7'
-		# X2=self.load_preprocessing('train', scale)
-		# X2=X2[:,1:]
-		# X=np.hstack((X,X2))
-		# print X.shape
-
-		# scale='loginfo3'
-		# X2=self.load_preprocessing('train', scale)
-		# X2=X2[:,1:]
-		# X=np.hstack((X,X2))
-		# print X.shape	
-
-		# scale='updateinfo1'
-		# X2=self.load_preprocessing('train', scale)
-		# X2=X2[:,1:]
-		# X=np.hstack((X,X2))
-		# print X.shape
-
-		# scale='updateinfo_limit1'
-		# X2=self.load_preprocessing('train', scale)
-		# X2=X2[:,1:]
-		# X=np.hstack((X,X2))
-		# print X.shape
-
-		# scale='updateinfo_limit3'
-		# X2=self.load_preprocessing('train', scale)
-		# X2=X2[:,1:]
-		# X=np.hstack((X,X2))
-		# print X.shape
-
-		# scale='updateinfo_limit7'
-		# X2=self.load_preprocessing('train', scale)
-		# X2=X2[:,1:]
-		# X=np.hstack((X,X2))
-		# print X.shape
-
-		# scale='updateinfo_time'
-		# X2=self.load_preprocessing('train', scale)
-		# X2=X2[:,1:]
-		# X=np.hstack((X,X2))
-		# print X.shape
-
-		# scale='missing_scale'
-		# X2=self.load_preprocessing('train', scale)
-		# #X=X2
-		# X=np.hstack((X,X2))
-		# print X.shape		
-
-		# X_train=X
-		# print "....."
-		# one_value_col=[]
-
-		# tmp_X=[]
-		# for i in range(len(X_train[0])):
-		# 	col_train_set=set(X_train[:,i])
-		# 	#col_predict_set=set(X_predict[:,i])
-		# 	if len(col_train_set)==1: #reader_numeric[feature]
-		# 		one_value_col.append(i)
-		# 	else:
-		# 		tmp_X.append(X_train[:,i])
-		# print 'cut col:',len(one_value_col)
-		# X=np.array(tmp_X).transpose()
-
-		# self.one_value_col=one_value_col
+		# for info in updates:
+		# 	X2=self.load_preprocessing('train', info)
+		# 	X=np.hstack((X,X2))
+		# 	print X.shape
 
 		print X.shape
 		return X

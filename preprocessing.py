@@ -10,6 +10,7 @@ from config import Config
 from load_origin_data import Load_origin_data
 import json
 import time
+from datetime import datetime
 import math
 
 class Preprocessing(object):
@@ -149,6 +150,9 @@ class Preprocessing(object):
 		reader_category_train=pd.read_csv(self.config.path_origin_train_x,iterator=False,delimiter=',',usecols=tuple(category_num_set),encoding='utf-8')
 		reader_category_predict=pd.read_csv(self.config.path_origin_predict_x,iterator=False,delimiter=',',usecols=tuple(category_num_set),encoding='utf-8')
 		reader1=pd.concat([reader_category_train,reader_category_predict],ignore_index=True)
+		for feature in category_num_set:
+			reader1[feature]=reader1[feature].apply(self._deal_nan_digit)
+
 
 		reader_category_train2=pd.read_csv(self.config.path_origin_train_x,iterator=False,delimiter=',',usecols=tuple(tmp_set),encoding='utf-8')
 		reader_category_predict2=pd.read_csv(self.config.path_origin_predict_x,iterator=False,delimiter=',',usecols=tuple(tmp_set),encoding='utf-8')
@@ -160,7 +164,7 @@ class Preprocessing(object):
 			values=sorted(values)
 			tmp_dict={}
 			for i in range(len(values)):
-				tmp_dict[values[i]]=i
+				tmp_dict[str(values[i])]=i
 			self.num_scale_dict=tmp_dict
 
 			reader[feature]=reader[feature].apply(self.deal_num_scale)
@@ -176,7 +180,12 @@ class Preprocessing(object):
 		return X_train,X_predict
 
 	def deal_num_scale(self,n):
-		return self.num_scale_dict[n]
+		#return self.num_scale_dict[str(n)]
+		if self.num_scale_dict[str(n)]:
+			return self.num_scale_dict[str(n)]
+		else:
+			#print self.num_scale_dict[str(n)]
+			return -1
 
 	def output_category_num_scale(self):
 		X_train,X_predict=self.category_num_scale()
@@ -316,6 +325,13 @@ class Preprocessing(object):
 			return location[1]
 		except:
 			return 0# 34.480485
+
+	def _deal_mean(self,n):
+		if n==0:
+			return self.col_mean
+		else:
+			return n
+
 	def load_coor_json(self,feature):
 		f=open(self.config.path_coor+feature+'.json')
 		lines=f.readline()
@@ -324,8 +340,8 @@ class Preprocessing(object):
 
 	def output_coor_scale(self):
 		X_train,X_predict=self.coor_scale()
-		pd.DataFrame(X_train).to_csv(self.config.path+"train/master_coor2.csv",seq=',',mode='wb',index=False,header=None)
-		pd.DataFrame(X_predict).to_csv(self.config.path+"test/master_coor2.csv",seq=',',mode='wb',index=False,header=None)
+		pd.DataFrame(X_train).to_csv(self.config.path+"train/master_coor_mean.csv",seq=',',mode='wb',index=False,header=None)
+		pd.DataFrame(X_predict).to_csv(self.config.path+"test/master_coor_mean.csv",seq=',',mode='wb',index=False,header=None)
 
 	def coor_scale(self):
 		features_category,features_numeric,reader_category,reader_numeric,len_train,len_predict=self.load_data()
@@ -335,7 +351,12 @@ class Preprocessing(object):
 			if feature=='UserInfo_24' or feature=='UserInfo_2' or feature=='UserInfo_7' or feature=='UserInfo_4' or feature=='UserInfo_8' or feature=='UserInfo_20' or feature=='UserInfo_19':
 				self.location=self.load_coor_json(feature)
 				reader_province=reader_category[feature].apply(self._deal_longitude_scale)
+				self.col_mean=np.mean(reader_province)
+				reader_province=reader_province.apply(self._deal_mean)
+
 				reader_city=reader_category[feature].apply(self._deal_latitude_scale)
+				self.col_mean=np.mean(reader_city)
+				reader_city=reader_city.apply(self._deal_mean)
 			else:
 				continue
 
@@ -485,6 +506,121 @@ class Preprocessing(object):
 			return 0
 		else:
 			return 1
+
+	def listinfo_transform(self):
+		reader1=pd.read_csv(self.config.path_origin_train_x,iterator=False,delimiter=',',usecols=tuple(['ListingInfo']),encoding='utf-8')
+		reader2=pd.read_csv(self.config.path_origin_predict_x,iterator=False,delimiter=',',usecols=tuple(['ListingInfo']),encoding='utf-8')
+		len_train=len(reader1)
+		len_predict=len(reader2)
+		reader=pd.concat([reader1,reader2],ignore_index=True)
+		year=reader['ListingInfo'].apply(self._date_to_year)
+		month=reader['ListingInfo'].apply(self._date_to_month)
+		week=reader['ListingInfo'].apply(self._date_to_week)
+		day=reader['ListingInfo'].apply(self._date_to_day)
+		is_week_day=reader['ListingInfo'].apply(self._date_is_week_day)
+
+		month_dumps=pd.get_dummies(month)
+		week_dumps=pd.get_dummies(week)
+
+		X=[year,month,week,day,is_week_day]
+		X=np.array(X).transpose()
+		X=np.hstack((X,month_dumps,week_dumps))
+		print X.shape
+		X_train=X[:len_train]
+		X_predict=X[len_train:]
+		pd.DataFrame(X_train).to_csv(self.config.path+"train/listingInfo_transform.csv",seq=',',mode='wb',index=False,header=None)
+		pd.DataFrame(X_predict).to_csv(self.config.path+"test/listingInfo_transform.csv",seq=',',mode='wb',index=False,header=None)
+
+	def _date_to_year(self,n):
+		try:
+			t=time.strptime(str(n),"%Y/%m/%d")
+		except:
+			t=time.strptime(str(n),"%d/%m/%Y")
+		d=datetime.fromtimestamp(time.mktime(t))
+		return d.year
+
+	def _date_to_month(self,n):
+		try:
+			t=time.strptime(str(n),"%Y/%m/%d")
+		except:
+			t=time.strptime(str(n),"%d/%m/%Y")
+		d=datetime.fromtimestamp(time.mktime(t))
+		return d.month
+
+	def _date_to_day(self,n):
+		try:
+			t=time.strptime(str(n),"%Y/%m/%d")
+		except:
+			t=time.strptime(str(n),"%d/%m/%Y")
+		d=datetime.fromtimestamp(time.mktime(t))
+		return d.day
+
+	def _date_to_week(self,n):
+		try:
+			t=time.strptime(str(n),"%Y/%m/%d")
+		except:
+			t=time.strptime(str(n),"%d/%m/%Y")
+		d=datetime.fromtimestamp(time.mktime(t))
+		return d.weekday()+1
+	def _date_is_week_day(self,n):
+		try:
+			t=time.strptime(str(n),"%Y/%m/%d")
+		except:
+			t=time.strptime(str(n),"%d/%m/%Y")
+		d=datetime.fromtimestamp(time.mktime(t))
+		if d.weekday()<5:
+			return 1
+		else:
+			return 0
+
+
+	def education_transform(self):
+		f='WeblogInfo'
+		origin_instance=Load_origin_data(self.config)
+		features=origin_instance.load_feature(f)
+		reader1=pd.read_csv(self.config.path_origin_train_x,iterator=False,delimiter=',',usecols=tuple(features),encoding='utf-8')
+		reader2=pd.read_csv(self.config.path_origin_predict_x,iterator=False,delimiter=',',usecols=tuple(features),encoding='utf-8')
+		len_train=len(reader1)
+		len_predict=len(reader2)
+		reader=pd.concat([reader1,reader2],ignore_index=True)
+		self.sample_num=len_train+len_predict
+		l=[]
+		for feature in features:
+			s=list(set(reader[feature]))
+			feature_d={}
+			for v in s:
+				feature_d[str(v)]=0
+			self.feature_d=feature_d
+			reader[feature].apply(self._count_feature_num)
+			#print self.feature_d
+			tmp_l=reader[feature].apply(self._count_feature_per)
+			#print tmp_l
+			l.append(tmp_l)
+		
+		X=np.array(l).transpose()
+		print X.shape
+		X_train=X[:len_train]
+		X_predict=X[len_train:]
+		pd.DataFrame(X_train).to_csv(self.config.path+"train/master_"+f+"_weight.csv",seq=',',mode='wb',index=False,header=None)
+		pd.DataFrame(X_predict).to_csv(self.config.path+"test/master_"+f+"_weight.csv",seq=',',mode='wb',index=False,header=None)
+
+	def _count_feature_num(self,n):
+		self.feature_d[str(n)]+=1
+	def _count_feature_per(self,n):
+		return float(self.feature_d[str(n)])/float(self.sample_num)
+
+
+def main():
+	instance=Preprocessing(Config())
+	instance.education_transform()
+	pass
+
+if __name__ == '__main__':
+	reload(sys)
+	sys.setdefaultencoding('utf-8')
+	main()
+
+
 
 
 

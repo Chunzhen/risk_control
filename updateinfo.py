@@ -52,6 +52,9 @@ class Updateinfo(object):
 					Idx_d['type_per_'+str(t2)]=float(Idx_d['type_'+str(t2)])/float(Idx_d['log_len'])
 
 				Idx_dict[str(Idxs[index])]=self._row_info(Idx_d,types)
+
+				#print len(self._row_info(Idx_d,types))
+
 				Idx_d=copy.deepcopy(d)
 				index+=1
 
@@ -146,7 +149,7 @@ class Updateinfo(object):
 			if str(uid) in Idx_dict:
 				l=Idx_dict[str(uid)]
 			else:
-				l=[0 for i in range(56)]
+				l=[0 for i in range(111)]
 			f1.write(str(uid))
 			for v in l:
 				f1.write(','+str(v))
@@ -156,7 +159,7 @@ class Updateinfo(object):
 			if str(uid) in Idx_dict:
 				l=Idx_dict[str(uid)]
 			else:
-				l=[0 for i in range(56)]
+				l=[0 for i in range(111)]
 			f2.write(str(uid))
 			for v in l:
 				f2.write(','+str(v))
@@ -169,8 +172,14 @@ class Updateinfo(object):
 		l=[]
 		l.append(d['log_len'])
 		for t in types:
-			l.append(d['type_'+str(t)])
-			l.append(d['type_per_'+str(t)])
+			if d['type_'+str(t)]:			
+				l.append(d['type_'+str(t)])
+			else:
+				l.append(0)
+			if d['type_per_'+str(t)]:
+				l.append(d['type_per_'+str(t)])
+			else:
+				l.append(0)
 		return l
 
 	def get_Idx(self,col):
@@ -314,12 +323,15 @@ class Updateinfo(object):
 
 def main():
 	instance=Updateinfo(Config())
+	#instance.load_info()
 	#instance.output_info('master_updateinfo1')
-	#instance.output_info('master_updateinfo_limit1')
-	#instance.output_info('master_updateinfo_limit3')
-	#instance.output_info('master_updateinfo_limit7')
-	instance.output_info3()
+	instance.output_info('master_updateinfo_limit1')
+	instance.output_info('master_updateinfo_limit3')
+	instance.output_info('master_updateinfo_limit7')
+	#instance.output_info3()
 	pass
 
 if __name__ == '__main__':
+	reload(sys)
+	sys.setdefaultencoding('utf-8')
 	main()

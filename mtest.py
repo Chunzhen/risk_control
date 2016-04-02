@@ -160,7 +160,7 @@ class Mtest(object):
 
 def main():
 	test_instance=Mtest()
-	test_instance.run(10)
+	test_instance.run(16)
 	pass
 
 if __name__ == '__main__':

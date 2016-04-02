@@ -17,12 +17,30 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import BaggingClassifier
+from sklearn.cross_validation import train_test_split
+from sklearn import metrics
+from sklearn.metrics import roc_curve, auc
+
+from sklearn.linear_model import RandomizedLogisticRegression
 
 class Run(object):
 	def __init__(self):
 		self.config=Config()
 
 	def level_one_wrapper(self):
+		# data_instance=Load_scale_data(self.config)
+		# origin_instance=Load_origin_data(self.config)
+		# X=data_instance.load_train_X()
+		# y=origin_instance.load_train_y()
+		# X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=0.2,random_state=1)
+		# clf=LogisticRegression(max_iter=1000,C=0.0005,class_weight={1:2198,0:27802},solver='lbfgs',tol=0.001)
+		# clf.fit(X_train,y_train)
+		# y_pred=clf.predict_proba(X_test)
+		# y_pred=y_pred[:,1]
+		# auc_score=metrics.roc_auc_score(y_test,y_pred)
+		# print auc_score
+		# return
+
 		level='one'
 		data_instance=Load_scale_data(self.config)
 		X_0,X_1,uid_0,uid_1=data_instance.load_train_X_separate()
@@ -32,7 +50,7 @@ class Run(object):
 	   	'scale_pos_weight':12.56, #27802.0/(2198.0) 
 	    'eval_metric': 'auc',
 	    'gamma':0.05,
-	    'max_depth':7,#11
+	    'max_depth':3,#11
 	    'lambda':300,
 	    'subsample':0.7,
 	    'colsample_bytree':0.5,
@@ -43,13 +61,12 @@ class Run(object):
 	    'silent':1
 	    }
 		mboost_instance=Mboost(self.config)
-		#mboost_instance.xgb_level_train(level,'xgb1000_master_x',X_0,X_1,uid_0,uid_1,params,2000)
-		mboost_instance.level_train(AdaBoostClassifier(base_estimator=RandomForestClassifier(n_estimators=50,max_depth=6,min_samples_split=9),n_estimators=100,learning_rate=0.02),level,'ada100',X_0,X_1,uid_0,uid_1)
-		#mboost_instance.level_train(RandomForestClassifier(n_estimators=200,max_depth=7,min_samples_split=9),level,'rf200',X_0,X_1,uid_0,uid_1)
-		#mboost_instance.level_train(LogisticRegression(),level,'lr_sag',X_0,X_1,uid_0,uid_1)
+	#	mboost_instance.xgb_level_train(level,'xgb1000_master_dumps_no_location',X_0,X_1,uid_0,uid_1,params,1000)
+		#mboost_instance.level_train(AdaBoostClassifier(base_estimator=RandomForestClassifier(n_estimators=20,max_depth=6,min_samples_split=9),n_estimators=100,learning_rate=0.02),level,'ada100',X_0,X_1,uid_0,uid_1)
+		#mboost_instance.level_train(RandomForestClassifier(n_estimators=100,max_depth=4,min_samples_split=9),level,'rf100',X_0,X_1,uid_0,uid_1)
+		mboost_instance.level_train(LogisticRegression(max_iter=1500,C=0.0005,class_weight={0:2198,1:27802},solver='lbfgs',tol=0.001),level,'lr_x',X_0,X_1,uid_0,uid_1)
 		#mboost_instance.level_train(GradientBoostingClassifier(n_estimators=20,max_depth=11,min_samples_split=9,learning_rate=0.02,subsample=0.7),level,'gbdt20',X_0,X_1,uid_0,uid_1)
-		
-
+		#max_iter=1000,alpha=0.0005,max_iter=1000,,class_weight={0:2198,1:27802},solver='auto'
 	def level_one_predict(self):
 		level='one'
 		origin_instance=Load_origin_data(self.config)

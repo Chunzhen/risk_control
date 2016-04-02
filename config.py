@@ -42,7 +42,7 @@ class Config(object):
 		"""
 		fold random state
 		"""
-		self.fold_random_state=171
+		self.fold_random_state=1
 		self.n_folds=5
 
 		"""

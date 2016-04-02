@@ -35,7 +35,7 @@ class Load_origin_data(object):
 		features=pd.read_csv(self.config.path_feature_type,iterator=False,delimiter=',',encoding='utf-8')
 		r_features=[]
 		for i,t in enumerate(features['Index']):
-			if features['Idx'][i].find(tt)>=0:
+			if features['Idx'][i].lower().find(tt.lower())>=0:
 				r_features.append(features['Idx'][i])
 		return r_features
 

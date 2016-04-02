@@ -19,7 +19,7 @@ class Mboost_thread(threading.Thread):
 		self.y_test=y_test
 		self.test_uid=test_uid
 
-		self.predict=[]
+		self.predict=[0 for i in range(len(test_uid))]
 		self.auc_score=0
 		pass
 
@@ -39,6 +39,7 @@ class Mboost_thread(threading.Thread):
 		try:
 			#分类器输出probability
 			y_pred=clf.predict_proba(x_test)
+			#print y_pred
 			y_pred=y_pred[:,1]
 		except:	
 			#回归器直接输出预测值
@@ -48,6 +49,7 @@ class Mboost_thread(threading.Thread):
 		auc_score=metrics.roc_auc_score(y_test,y_pred)
 		self.predict=y_pred
 		self.auc_score=auc_score
+		print auc_score	
 
 def main():
 	# threads=[]

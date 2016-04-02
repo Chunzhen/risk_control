@@ -109,6 +109,7 @@ class Mboost(object):
 
 		# for thread in threads:
 		# 	thread.join()
+		
 
 		for thread in threads:
 			auc_score=thread.auc_score
@@ -119,14 +120,17 @@ class Mboost(object):
 
 		#保存输出结果
 		d={}
+		#print test_uids
 		for k, uid in enumerate(test_uids):
-			d[uid]=predicts[k]
+			d[str(uid)]=predicts[k]
 		origin_instance=Load_origin_data(self.config)
 
 		uids=origin_instance.load_train_uid()
+
+		#print uids
 		predicts2=[]
 		for uid in uids:
-			predicts2.append(d[uid])
+			predicts2.append(d[str(uid)])
 		
 		self.output_level_train(predicts2,uids,scores,level,name)
 		print name+" average scores:",np.mean(scores)
@@ -164,12 +168,13 @@ class Mboost(object):
 		scores=[]
 		part_uids=[]
 
-		x_train=np.vstack((X_1,X_0))
-		y_train=np.hstack((np.ones(len(X_1)),np.zeros(len(X_0))))
-		dtrain=xgb.DMatrix(x_train,label=y_train)
+		# x_train=np.vstack((X_0,X_1))
+		# y_train=np.hstack((np.zeros(len(X_0)),np.ones(len(X_1))))
+		# dtrain=xgb.DMatrix(x_train,label=y_train)
 
-		xgb.cv(params,dtrain,round,nfold=5,metrics={'auc'},seed=7,show_progress=20)#,fpreproc=self.fpreproc ,obj=logregobj
-		return 
+		# log=xgb.cv(params,dtrain,round,nfold=5,metrics={'auc'},seed=7,show_progress=20)#,fpreproc=self.fpreproc ,obj=logregobj
+		# log.to_csv(self.config.path_train+level+'/'+name+'.log',seq=',',mode='wb',index=False)
+		# return 
 
 		threads=[]
 
@@ -218,8 +223,20 @@ class Mboost(object):
 			print auc_score			
 
 		#保存输出结果
+		d={}
+		#print test_uids
+		for k, uid in enumerate(test_uids):
+			d[str(uid)]=predicts[k]
+		origin_instance=Load_origin_data(self.config)
 
-		self.output_level_train(predicts,test_uids,scores,level,name)
+		uids=origin_instance.load_train_uid()
+
+		#print uids
+		predicts2=[]
+		for uid in uids:
+			predicts2.append(d[str(uid)])
+		
+		self.output_level_train(predicts2,uids,scores,level,name)
 		print name+" average scores:",np.mean(scores)
 
 	def output_level_train(self,predicts,test_uids,scores,level,name):	
