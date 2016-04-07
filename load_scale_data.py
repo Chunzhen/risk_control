@@ -33,15 +33,20 @@ class Load_scale_data(object):
 		others=['x','lr','category_num2','city_rank','coor','missing_scale']
 
 
-		scale='lr'
+		# scale='lr'
+		# X2=self.load_preprocessing('train', scale)
+		# X=X2[:,:len(X2[0])-1]
+		# #X=np.hstack((X,X2))
+		# print X.shape
+
+		scale='category_to_num'
 		X2=self.load_preprocessing('train', scale)
-		X=X2[:,:len(X2[0])-1]
+		X=X2
 		#X=np.hstack((X,X2))
 		print X.shape
 
-		scale='WeblogInfo_weight'
+		scale='category_weight'
 		X2=self.load_preprocessing('train', scale)
-		#X=X2
 		X=np.hstack((X,X2))
 		print X.shape
 

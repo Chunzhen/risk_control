@@ -421,7 +421,7 @@ class Preprocessing(object):
 			tmp=self.city_rank_list[i]
 			index=tmp.find(s)
 			if index>0:
-				return (5-i)**2
+				return (5-i)
 		return 0
 
 	def city_rank_scale(self):
@@ -450,7 +450,7 @@ class Preprocessing(object):
 			for j in range(i+1,n):
 				col2=reader[:,j]
 				col=col1-col2
-				cor_col.append(col)
+				cor_col.append(col-np.min(col))
 
 		cor_col=np.transpose(np.array(cor_col))
 		X=np.hstack((reader,cor_col))
@@ -461,8 +461,8 @@ class Preprocessing(object):
 
 	def output_city_rank(self):
 		X_train,X_predict=self.city_rank_scale()
-		pd.DataFrame(X_train).to_csv(self.config.path+"train/master_city_rank2.csv",seq=',',mode='wb',index=False,header=None)
-		pd.DataFrame(X_predict).to_csv(self.config.path+"test/master_city_rank2.csv",seq=',',mode='wb',index=False,header=None)
+		pd.DataFrame(X_train).to_csv(self.config.path+"train/master_city_rank.csv",seq=',',mode='wb',index=False,header=None)
+		pd.DataFrame(X_predict).to_csv(self.config.path+"test/master_city_rank.csv",seq=',',mode='wb',index=False,header=None)
 
 
 	def missing_value_scale(self):
@@ -575,15 +575,52 @@ class Preprocessing(object):
 
 
 	def education_transform(self):
-		f='WeblogInfo'
+		f='category'
 		origin_instance=Load_origin_data(self.config)
-		features=origin_instance.load_feature(f)
+		#features=origin_instance.load_feature(f)
+		#features=['UserInfo_3','UserInfo_1','UserInfo_6','UserInfo_5','UserInfo_9','UserInfo_21','UserInfo_23','UserInfo_22','UserInfo_11','UserInfo_12','UserInfo_13','UserInfo_14','UserInfo_15','UserInfo_16','UserInfo_17']
+		#features=['UserInfo_6','UserInfo_5','UserInfo_9','UserInfo_21','UserInfo_11','UserInfo_12','UserInfo_13','UserInfo_16','UserInfo_17']
+		features=[
+			'UserInfo_3',
+			'UserInfo_1',
+			'UserInfo_6',
+			'UserInfo_5',
+			'UserInfo_9',
+			'Education_Info1',
+			'Education_Info2',
+			'Education_Info3',
+			'Education_Info4',
+			'Education_Info5',
+			'Education_Info6',
+			'Education_Info7',
+			'Education_Info8',
+			#'WeblogInfo_20',
+			'UserInfo_21',
+			#'UserInfo_23',
+			'UserInfo_22',
+			'WeblogInfo_21',
+			'SocialNetwork_1',
+			'SocialNetwork_7',
+			'SocialNetwork_12',
+			'WeblogInfo_19',
+			'UserInfo_11',
+			'UserInfo_12',
+			'UserInfo_13',
+			'UserInfo_14',
+			'UserInfo_15',
+			'UserInfo_16',
+			'UserInfo_17',
+			'SocialNetwork_2'
+		]
 		reader1=pd.read_csv(self.config.path_origin_train_x,iterator=False,delimiter=',',usecols=tuple(features),encoding='utf-8')
 		reader2=pd.read_csv(self.config.path_origin_predict_x,iterator=False,delimiter=',',usecols=tuple(features),encoding='utf-8')
 		len_train=len(reader1)
 		len_predict=len(reader2)
 		reader=pd.concat([reader1,reader2],ignore_index=True)
 		self.sample_num=len_train+len_predict
+		
+		y=origin_instance.load_train_y()
+
 		l=[]
 		for feature in features:
 			s=list(set(reader[feature]))
@@ -595,6 +632,10 @@ class Preprocessing(object):
 			#print self.feature_d
 			tmp_l=reader[feature].apply(self._count_feature_per)
 			#print tmp_l
+
+			cor=np.corrcoef(np.array(tmp_l)[:len_train],y)[0,1]
+			print cor
+
 			l.append(tmp_l)
 		
 		X=np.array(l).transpose()
