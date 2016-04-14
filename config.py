@@ -13,6 +13,7 @@ class Config(object):
 		基本配置信息
 		"""
 		self.path='F:/contest/risk_control/data/'
+		#self.path='F:/contest/risk_control/data/all_data/'
 		self.path_feature_type=self.path+'feature_type.csv'
 		self.path_origin_train_x=self.path+'train/master.csv'
 		#额外的文件
@@ -50,5 +51,7 @@ class Config(object):
 		"""
 		self.path_train=self.path+'output/train/'
 		self.path_predict=self.path+'output/test/'
+
+		self.path_verify=self.path+'verify/'
 
 		

@@ -6,6 +6,12 @@ import os
 import numpy as np
 import pandas as pd
 
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import Normalizer
+
+from sklearn.decomposition import PCA,KernelPCA
+
 from config import Config
 from load_origin_data import Load_origin_data
 from loginfo import Loginfo
@@ -27,54 +33,89 @@ class Load_scale_data(object):
 		"""
 		组合训练集多个特征文件
 		"""
-		dumps=['dumps','dumps_no_location','numeric12_add_median']
-		infos=['loginfo1','loginfo_limit1','loginfo_limit3','loginfo_limit7','loginfo3']
-		updates=['updateinfo1','updateinfo_limit1','updateinfo_limit3','updateinfo_limit7','updateinfo_time']
-		others=['x','lr','category_num2','city_rank','coor','missing_scale']
+		dumps=['dumps_no_location'] #,'location'
+		#infos=['loginfo1','loginfo_limit1','loginfo_limit3','loginfo_limit7','loginfo_time']
+		#updates=['updateinfo1','updateinfo_limit1','updateinfo_limit3','updateinfo_limit7','updateinfo_time']
+		others=['category_num','city_rank','coor','category_weight','listingInfo_transform','ThirdParty_same_period','ThirdParty_same_section','ThirdParty_period_sum','ThirdParty_section_sum','ThirdParty_period_divide','ThirdParty_section_divide','ThirdParty_row','weblog_row']
+		X=np.array([])
+		# for i,dump in enumerate(dumps):
+		# 	X2=self.load_preprocessing('train', dump)
+		# 	X2=X2[:,:len(X2[0])-1]
+		# 	print dump,X2.shape
+		# 	if i==0:
+		# 		X=X2
+		# 	else:
+		# 		X=np.hstack((X,X2))
 
-
-		# scale='lr'
-		# X2=self.load_preprocessing('train', scale)
-		# X=X2[:,:len(X2[0])-1]
-		# #X=np.hstack((X,X2))
-		# print X.shape
-
-		scale='category_to_num'
-		X2=self.load_preprocessing('train', scale)
-		X=X2
-		#X=np.hstack((X,X2))
-		print X.shape
-
-		scale='category_weight'
-		X2=self.load_preprocessing('train', scale)
-		X=np.hstack((X,X2))
-		print X.shape
-
-		# scale='UserInfo_weight'
-		# X2=self.load_preprocessing('train', scale)
-		# #X=X2
-		# X=np.hstack((X,X2))
-		# print X.shape
-
-		# scale='coor'
-		# X2=self.load_preprocessing('train', scale)
-		# #X=X2
-		# X=np.hstack((X,X2))
-		# print X.shape
-
-		# scale='coor'
-		# X2=self.load_preprocessing('train', scale)
-		# X=np.hstack((X,X2))
-		# print X.shape
-
-		# for info in updates:
+		# for i,info in enumerate(infos):
 		# 	X2=self.load_preprocessing('train', info)
-		# 	X=np.hstack((X,X2))
-		# 	print X.shape
+		# 	X2=X2[:,:len(X2[0])-1]
+		# 	print info,X2.shape
+		# 	if i==0:
+		# 		X=X2
+		# 	else:
+		# 		X=np.hstack((X,X2))
 
+		# for i,update in enumerate(updates):
+		# 	X2=self.load_preprocessing('train', update)
+		# 	X2=X2[:,:len(X2[0])-1]
+		# 	print update,X2.shape
+		# 	X=np.hstack((X,X2))
+
+		# for i,other in enumerate(others):
+		# 	X2=self.load_preprocessing('train', other)
+		# 	X2=X2[:,:len(X2[0])-1]
+		# 	print other,X2.shape
+		# 	X=np.hstack((X,X2))
+
+		# scale='ThirdParty_part'
+		# X2=self.load_preprocessing('train', scale)
+		# #X=X2
+		# X=X2[:,:len(X2[0])-1]
+		# print X.shape
+
+		scale='ThirdParty_same_section'
+		X2=self.load_preprocessing('train', scale)
+		#X=X2
+		X=X2[:,:len(X2[0])-1]
+		#X=np.hstack((X,X2))
+		print scale, X.shape
+
+
+		# scale='merge_thirdparty'
+		# X2=self.load_preprocessing('train', scale)
+		# #X=X2
+		# X2=X2[:,:len(X2[0])-1]
+		# X=np.hstack((X,X2))
+		# print scale, X.shape
+
+		# scale='ThirdParty_period_sum'
+		# X2=self.load_preprocessing('train', scale)
+		# #X=X2
+		# X2=X2[:,:len(X2[0])-1]
+		# X=np.hstack((X,X2))
+		# print scale, X.shape
+
+		# scale='ThirdParty_section_sum'
+		# X2=self.load_preprocessing('train', scale)
+		# #X=X2
+		# X2=X2[:,:len(X2[0])-1]
+		# X=np.hstack((X,X2))
+		# print scale, X.shape
+
+		#X=np.nan_to_num(X)
+		#indexs=self.load_feature_importance()
+		#X=X[:,indexs]
+		X=self.min_max_scale(X)
+		#X=self.pca_salce(X,100)
 		print X.shape
 		return X
 	
+	def pca_salce(self,X,n):
+		pca=PCA(n_components=n)
+		#pca = KernelPCA(kernel="linear", fit_inverse_transform=True, gamma=10)
+		return pca.fit_transform(X)
+
 	def load_train_X_separate(self):
 		origin_instance=Load_origin_data(self.config)
 		y=origin_instance.load_train_y()
@@ -118,112 +159,185 @@ class Load_scale_data(object):
 		"""
 		组合测试集多个特征文件
 		"""
-		scale='numeric12_add_median'
-		X=self.load_preprocessing('test', scale)
-		print X.shape
+		dumps=['dumps_no_location','location']
+		infos=['loginfo1','loginfo_limit1','loginfo_limit3','loginfo_limit7','loginfo_time']
+		updates=['updateinfo1','updateinfo_limit1','updateinfo_limit3','updateinfo_limit7','updateinfo_time']
+		others=['category_num','city_rank','coor','category_weight','Userinfo_weight']
+		X=np.array([])
+		# for i,dump in enumerate(dumps):
+		# 	X2=self.load_preprocessing('test', dump)
+		# 	X2=X2[:,:len(X2[0])-1]
+		# 	print dump,X2.shape
+		# 	if i==0:
+		# 		X=X2
+		# 	else:
+		# 		X=np.hstack((X,X2))
 
-		scale='category'
-		X2=self.load_preprocessing('test', scale)
-		X2=X2[:,1:]
-		X=np.hstack((X,X2))
-		print X.shape
+		# for i,info in enumerate(infos):
+		# 	X2=self.load_preprocessing('test', info)
+		# 	X2=X2[:,:len(X2[0])-1]
+		# 	print info,X2.shape
+		# 	if i==0:
+		# 		X=X2
+		# 	else:
+		# 		X=np.hstack((X,X2))
 
-		scale='location3'
-		X2=self.load_preprocessing('test', scale)
-		X2=X2[:,1:]
-		X=np.hstack((X,X2))
-		print X.shape
+		# for i,update in enumerate(updates):
+		# 	X2=self.load_preprocessing('test', update)
+		# 	X2=X2[:,:len(X2[0])-1]
+		# 	print update,X2.shape
+		# # 	X=np.hstack((X,X2))
 
-		scale='category_num2'
-		X2=self.load_preprocessing('test', scale)
-		X=np.hstack((X,X2))
-		print X.shape
+		# for i,other in enumerate(others):
+		# 	X2=self.load_preprocessing('test', other)
+		# 	X2=X2[:,:len(X2[0])-1]
+		# 	print other,X2.shape
+		# 	X=np.hstack((X,X2))
 
-		scale='city_rank'
-		X2=self.load_preprocessing('test', scale)
-		X=np.hstack((X,X2))
-		print X.shape
 
-		scale='coor'
-		X2=self.load_preprocessing('test', scale)
-		X=np.hstack((X,X2))
-		print X.shape
+		# scale='ThirdParty_same_period'
+		# X2=self.load_preprocessing('test', scale)
+		# #X=X2
+		# X2=X2[:,:len(X2[0])-1]
+		# X=np.hstack((X,X2))
+		# print scale, X.shape
 
-		scale='loginfo1'
+		# scale='ThirdParty_same_period_exp'
+		# X2=self.load_preprocessing('test', scale)
+		# #X=X2
+		# X2=X2[:,:len(X2[0])-1]
+		# X=np.hstack((X,X2))
+		# print scale, X.shape
+
+		# scale='ThirdParty_same_period_square'
+		# X2=self.load_preprocessing('test', scale)
+		# #X=X2
+		# X2=X2[:,:len(X2[0])-1]
+		# X=np.hstack((X,X2))
+		# print scale, X.shape
+
+		# scale='ThirdParty_same_section'
+		# X2=self.load_preprocessing('test', scale)
+		# #X=X2
+		# X2=X2[:,:len(X2[0])-1]
+		# X=np.hstack((X,X2))
+		# print scale, X.shape
+
+		# scale='ThirdParty_same_section_exp'
+		# X2=self.load_preprocessing('test', scale)
+		# #X=X2
+		# X2=X2[:,:len(X2[0])-1]
+		# X=np.hstack((X,X2))
+		# print scale, X.shape
+
+		# scale='ThirdParty_same_section_square'
+		# X2=self.load_preprocessing('test', scale)
+		# #X=X2
+		# X2=X2[:,:len(X2[0])-1]
+		# X=np.hstack((X,X2))
+		# print scale, X.shape
+		scale='feature_467'
 		X2=self.load_preprocessing('test', scale)
 		#X=X2
-		X2=X2[:,1:]
-		X=np.hstack((X,X2))
-		print X.shape
+		X=X2[:,:len(X2[0])-1]
+		#X=np.hstack((X,X2))
+		print scale, X.shape
 
-		scale='loginfo_limit1'
+
+		scale='merge_thirdparty'
 		X2=self.load_preprocessing('test', scale)
-		X2=X2[:,1:]
+		#X=X2
+		X2=X2[:,:len(X2[0])-1]
 		X=np.hstack((X,X2))
-		print X.shape
+		print scale, X.shape
 
-		scale='loginfo_limit3'
-		X2=self.load_preprocessing('test', scale)
-		X2=X2[:,1:]
-		X=np.hstack((X,X2))
-		print X.shape
-
-		scale='loginfo_limit7'
-		X2=self.load_preprocessing('test', scale)
-		X2=X2[:,1:]
-		X=np.hstack((X,X2))
-		print X.shape
-
-		scale='loginfo3'
-		X2=self.load_preprocessing('test', scale)
-		X2=X2[:,1:]
-		X=np.hstack((X,X2))
-		print X.shape	
-
-		scale='updateinfo1'
-		X2=self.load_preprocessing('test', scale)
-		X2=X2[:,1:]
-		X=np.hstack((X,X2))
-		print X.shape
-
-		scale='updateinfo_limit1'
-		X2=self.load_preprocessing('test', scale)
-		X2=X2[:,1:]
-		X=np.hstack((X,X2))
-		print X.shape
-
-		scale='updateinfo_limit3'
-		X2=self.load_preprocessing('test', scale)
-		X2=X2[:,1:]
-		X=np.hstack((X,X2))
-		print X.shape
-
-		scale='updateinfo_limit7'
-		X2=self.load_preprocessing('test', scale)
-		X2=X2[:,1:]
-		X=np.hstack((X,X2))
-		print X.shape
-
-		scale='updateinfo_time'
-		X2=self.load_preprocessing('test', scale)
-		X2=X2[:,1:]
-		X=np.hstack((X,X2))
-		print X.shape
-
-		# scale='missing_scale'
+		# scale='ThirdParty_row'
 		# X2=self.load_preprocessing('test', scale)
+		# #X=X2
+		# X2=X2[:,:len(X2[0])-1]
 		# X=np.hstack((X,X2))
-		# print X.shape	
+		# print scale,X.shape
 
-		X_predict=X
-		one_value_col=[]
+		# X_predict=X
+		# one_value_col=[]
 
-		tmp_X=[]
-		for i in range(len(X_predict[0])):
-			if i not in self.one_value_col:
-				tmp_X.append(X_predict[:,i])
+		# tmp_X=[]
+		# for i in range(len(X_predict[0])):
+		# 	if i not in self.one_value_col:
+		# 		tmp_X.append(X_predict[:,i])
 
-		X=np.array(tmp_X).transpose()
-		
+		# X=np.array(tmp_X).transpose()
+		#X=np.nan_to_num(X)
+		#X=self.normalizer_scale(X)
+		#indexs=self.load_feature_importance()
+		#X=X[:,indexs]
+
 		print X.shape
+		return X
+
+	def importance_scale(self,X,indexs):
+		return X[:,indexs]
+
+	def load_feature_importance(self):
+		X=pd.read_csv(self.config.path+'train/features_importance_merge3.csv',iterator=False,delimiter=',',encoding='utf-8',header=None)
+		indexs=[]
+		for i in range(len(X[0])):
+			if X[1][i]>1:
+				indexs.append(X[0][i])
+		return indexs
+
+	def standard_scale(self,X):
+		"""
+		:type X: numpy.array 特征矩阵
+		:rtype X: numpy.array 变换后特征
+		:特征变换工具函数
+		"""
+		scaler=StandardScaler()
+		return scaler.fit_transform(X)
+
+	def min_max_scale(self,X):
+		scaler=MinMaxScaler()
+		return scaler.fit_transform(X)
+
+	def normalizer_scale(self,X):
+		scaler=Normalizer()
+		return scaler.fit_transform(X)
+
+	#每个feature的中位数
+	def median_feature(self,X):
+		m,n=X.shape
+		X_median=[]
+		for i in range(n):
+			median=np.median(X[:,i])
+			X_median.append(median)
+		return X_median
+
+	#median 填充-1值
+	def fill_scale(self,X,X_median):
+		m,n=X.shape
+		for i in range(m):
+			for j in range(n):
+				if X[i][j]==-1 or X[i][j]==-2:
+					X[i][j]=X_median[j]
+		return X
+
+	def log_scale(self,X):
+		m,n=X.shape
+		for i in range(m):
+			for j in range(n):
+				if X[i][j]>0:
+					X[i][j]=math.log10(X[i][j])
+		return X
+
+	def log_scale_move(self,X):
+		n,m=X.shape
+		for i in range(m):
+			column=X[:,i]
+
+			c_max=np.max(column)
+			c_min=np.min(column)
+			for j in range(n):
+				column[j]=math.log10(column[j]-c_min+1)
+
+			X[:,i]=column
 		return X

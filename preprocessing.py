@@ -18,11 +18,22 @@ class Preprocessing(object):
 		self.config=config
 		self.city_rank_list=[]
 
+		self.origin_instance=Load_origin_data(config)
+		self.train_uids=self.origin_instance.load_train_uid()
+		len_train=len(self.train_uids)
+		self.train_uids=np.array(self.train_uids)
+		self.train_uids.shape=(len_train,1)
+
+		self.predict_uids=self.origin_instance.load_predict_uid()
+		len_predict=len(self.predict_uids)
+		self.predict_uids=np.array(self.predict_uids)
+		self.predict_uids.shape=(len_predict,1)
+
 	def load_data(self):
 		"""
 		特征处理
 		"""
-		instance=Load_origin_data(self.config)
+		instance=self.origin_instance
 		#读取feature type
 		features_category,features_numeric=instance.load_feature_type()
 		#读取train, predict数据
@@ -40,7 +51,7 @@ class Preprocessing(object):
 		features_category,features_numeric,reader_category,reader_numeric,len_train,len_predict=self.load_data()
 		i=0
 		dumps=pd.DataFrame()
-		category_num_set=set(['UserInfo_3','UserInfo_1','UserInfo_6','UserInfo_5','Education_Info1','Education_Info5','UserInfo_21','SocialNetwork_1','SocialNetwork_7','SocialNetwork_12','UserInfo_11','UserInfo_12','UserInfo_13','UserInfo_14','UserInfo_15','UserInfo_16','UserInfo_17','SocialNetwork_2'])
+
 		for feature in features_category:
 			if feature=='UserInfo_24':
 				continue
@@ -65,74 +76,81 @@ class Preprocessing(object):
 
 		print dumps.shape
 
-		# dumps_numeric=pd.DataFrame()
-		# i=0
-		# for feature in features_numeric:	
-		# 	if feature=='ListingInfo':
-		# 		reader_numeric[feature]=reader_numeric[feature].apply(self._deal_date)
-		# 	else:
-		# 		reader_numeric[feature]=reader_numeric[feature].apply(self._deal_nan_digit)
-		# 	col1=reader_numeric[feature].tolist()
+		dumps_numeric=pd.DataFrame()
+		i=0
+		for feature in features_numeric:	
+			if feature=='ListingInfo':
+				reader_numeric[feature]=reader_numeric[feature].apply(self._deal_date)
+			else:
+				reader_numeric[feature]=reader_numeric[feature].apply(self._deal_nan_digit)
+			col1=reader_numeric[feature].tolist()
 
-		# 	col=set(col1)
-		# 	if len(col)>100:		
-		# 		nan_num=0
-		# 		for v in col1:
-		# 			if v==-1:
-		# 				nan_num+=1
-		# 		if nan_num<2000:
-		# 			print 'add median'
+			col=set(col1)
+			# if len(col)>100:		
+			# 	nan_num=0
+			# 	for v in col1:
+			# 		if v==-1:
+			# 			nan_num+=1
+			# 	if nan_num<2000:
+			# 		print 'add median'
 
-		# 			self.col_median=np.median(col1)
-		# 			print self.col_median
-		# 			reader_numeric[feature]=reader_numeric[feature].apply(self._add_median)
-		# 			# tmp_dict={}
-		# 			# for vv in col1:
-		# 			# 	nn=tmp_dict.get(str(vv),0)
-		# 			# 	tmp_dict[str(vv)]=nn+1
+			# 		self.col_median=np.median(col1)
+			# 		print self.col_median
+			# 		reader_numeric[feature]=reader_numeric[feature].apply(self._add_median)
+					# tmp_dict={}
+					# for vv in col1:
+					# 	nn=tmp_dict.get(str(vv),0)
+					# 	tmp_dict[str(vv)]=nn+1
 
-		# 			# dd=sorted(tmp_dict.items(),key=lambda a:a[1],reverse=True)
-		# 			# if dd[0][0]!='-1':
-		# 			# 	self.col_median=dd[0][0]
-		# 			# 	print dd[0][0]
-		# 			# 	reader_numeric[feature]=reader_numeric[feature].apply(self._add_median)
+					# dd=sorted(tmp_dict.items(),key=lambda a:a[1],reverse=True)
+					# if dd[0][0]!='-1':
+					# 	self.col_median=dd[0][0]
+					# 	print dd[0][0]
+					# 	reader_numeric[feature]=reader_numeric[feature].apply(self._add_median)
 			
-		# 	#print len(col)
-		# 	if len(col)<12:
-		# 		tmp_dummys=pd.get_dummies(reader_numeric[feature])
-		# 		if i==0:
-		# 			dumps_numeric=tmp_dummys
-		# 		else:
-		# 			dumps_numeric=np.hstack((dumps_numeric,tmp_dummys))
-		# 		i+=1
+			#print len(col)
+			if len(col)<12:
+				tmp_dummys=pd.get_dummies(reader_numeric[feature])
+				if i==0:
+					dumps_numeric=tmp_dummys
+				else:
+					dumps_numeric=np.hstack((dumps_numeric,tmp_dummys))
+				i+=1
 
-		# print dumps_numeric.shape
+		print dumps_numeric.shape
 		#return 
 
-		#X=np.hstack((reader_numeric,dumps))
-		#X=np.hstack((X,dumps_numeric))
+		X=np.hstack((reader_numeric,dumps))
+		X=np.hstack((X,dumps_numeric))
 
 		#X=np.hstack((reader_numeric,dumps_numeric))
 		#X=reader_numeric
 		#X=np.hstack((reader_numeric,dumps_numeric))
-		X=dumps
-		print X.shape
-		X_train=X[:len_train]
-		X_predict=X[len_train:]
-		one_value_col=[]
+		"""
+		去除只取一个值的列
+		"""
+		# X=dumps
+		# print X.shape
+		# X_train=X[:len_train]
+		# X_predict=X[len_train:]
+		# one_value_col=[]
 
-		tmp_X=[]
-		for i in range(len(X_predict[0])):
-			col_train_set=set(X_train[:,i])
-			col_predict_set=set(X_predict[:,i])
-			if len(col_train_set)==1: #reader_numeric[feature]
-				one_value_col.append(i)
-			else:
-				tmp_X.append(X[:,i])
+		# tmp_X=[]
+		# for i in range(len(X_predict[0])):
+		# 	col_train_set=set(X_train[:,i])
+		# 	col_predict_set=set(X_predict[:,i])
+		# 	if len(col_train_set)==1: #reader_numeric[feature]
+		# 		one_value_col.append(i)
+		# 	else:
+		# 		tmp_X.append(X[:,i])
 
-		X=np.array(tmp_X).transpose()
+		# X=np.array(tmp_X).transpose()
+
 		X_train=X[:len_train]
+		X_train=np.hstack((self.train_uids,X_train))
+
 		X_predict=X[len_train:]
+		X_predict=np.hstack((self.predict_uids,X_predict))
 		print X.shape
 		return X_train,X_predict
 
@@ -173,8 +191,14 @@ class Preprocessing(object):
 		len_train=len(reader_category_train)
 		len_predict=len(reader_category_predict)
 		X=np.hstack((reader1,reader))
+		
+
 		X_train=X[:len_train]
+		X_train=np.hstack((self.train_uids,X_train))
+		
 		X_predict=X[len_train:]
+		X_predict=np.hstack((self.predict_uids,X_predict))
+
 		print X_train.shape
 		print X_predict.shape
 		return X_train,X_predict
@@ -189,20 +213,26 @@ class Preprocessing(object):
 
 	def output_category_num_scale(self):
 		X_train,X_predict=self.category_num_scale()
-		pd.DataFrame(X_train).to_csv(self.config.path+"train/master_category_num2.csv",seq=',',mode='wb',index=False,header=None)
-		pd.DataFrame(X_predict).to_csv(self.config.path+"test/master_category_num2.csv",seq=',',mode='wb',index=False,header=None)
+		pd.DataFrame(X_train).to_csv(self.config.path+"train/master_category_num.csv",seq=',',mode='wb',index=False,header=None)
+		pd.DataFrame(X_predict).to_csv(self.config.path+"test/master_category_num.csv",seq=',',mode='wb',index=False,header=None)
 
 	def output_dumps_scale(self):
 		X_train,X_predict=self.dumps_scale()
-		pd.DataFrame(X_train).to_csv(self.config.path+"train/master_category.csv",seq=',',mode='wb',index=False,header=None)
-		pd.DataFrame(X_predict).to_csv(self.config.path+"test/master_category.csv",seq=',',mode='wb',index=False,header=None)
+		# pd.DataFrame(X_train).to_csv(self.config.path+"train/master_dumps.csv",seq=',',mode='wb',index=False,header=None)
+		# pd.DataFrame(X_predict).to_csv(self.config.path+"test/master_dumps.csv",seq=',',mode='wb',index=False,header=None)
+
+		pd.DataFrame(X_train).to_csv(self.config.path+"train/master_dumps_no_location.csv",seq=',',mode='wb',index=False,header=None)
+		pd.DataFrame(X_predict).to_csv(self.config.path+"test/master_dumps_no_location.csv",seq=',',mode='wb',index=False,header=None)
 
 	def _deal_date(self,n):
 		try:
 			t=time.strptime(str(n),"%Y/%m/%d")
 		except:
-			t=time.strptime(str(n),"%d/%m/%Y")
-		return (time.mktime(t)-time.mktime(time.strptime("1/1/2010","%d/%m/%Y")))/100
+			try:
+				t=time.strptime(str(n),"%d/%m/%Y")
+			except:
+				t=time.strptime(str(n),"%Y-%m-%d")
+		return (time.mktime(t)-time.mktime(time.strptime("1/1/2010","%d/%m/%Y")))/86400
 
 	def _deal_nan_digit(slef,n):
 		if str(n)=='nan':
@@ -250,6 +280,15 @@ class Preprocessing(object):
 		else:
 			return n
 
+	def _deal_nan3(self,n):
+		n=str(n)
+		n=n.strip()
+		return n
+		if n=='nan' or n==u'不详':
+			return 'nan'
+		else:
+			return n
+
 	def location_scale(self):
 		features_category,features_numeric,reader_category,reader_numeric,len_train,len_predict=self.load_data()
 		i=0
@@ -258,6 +297,7 @@ class Preprocessing(object):
 			if feature=='UserInfo_24' or feature=='UserInfo_2' or feature=='UserInfo_7' or feature=='UserInfo_4' or feature=='UserInfo_8' or feature=='UserInfo_20' or feature=='UserInfo_19':
 				#print feature
 				self.location=self.load_location_json(feature)
+				#reader_category[feature]=reader_category[feature].apply(self._deal_nan3)
 				reader_province=reader_category[feature].apply(self._deal_province_scale)
 				reader_city=reader_category[feature].apply(self._deal_city_scale)
 				#break
@@ -265,7 +305,7 @@ class Preprocessing(object):
 				continue
 
 			if feature=='UserInfo_2' or feature=='UserInfo_4' or feature=='UserInfo_24' or feature=='UserInfo_20' or feature=='UserInfo_8':
-				tmp_dummys=pd.get_dummies(reader_city)	
+				tmp_dummys=pd.get_dummies(reader_city)
 			else:
 				tmp_dummys=pd.get_dummies(reader_province)
 			#print tmp_dummys.shape
@@ -280,16 +320,27 @@ class Preprocessing(object):
 				dumps=np.hstack((dumps,tmp_dummys))
 				i+=1
 
+			#print self.location
+			#return 
+
 		print dumps.shape
 		X=dumps
+
 		X_train=X[:len_train]
+		X_train=np.hstack((self.train_uids,X_train))
+		
 		X_predict=X[len_train:]
+		X_predict=np.hstack((self.predict_uids,X_predict))
+
+		X_train=X_train.astype(int)
+		X_predict=X_predict.astype(int)
+		
 		return X_train,X_predict
 
 	def output_location_scale(self):
 		X_train,X_predict=self.location_scale()
-		pd.DataFrame(X_train).to_csv(self.config.path+"train/master_location3.csv",seq=',',mode='wb',index=False,header=None)
-		pd.DataFrame(X_predict).to_csv(self.config.path+"test/master_location3.csv",seq=',',mode='wb',index=False,header=None)
+		pd.DataFrame(X_train).to_csv(self.config.path+"train/master_location.csv",seq=',',mode='wb',index=False,header=None)
+		pd.DataFrame(X_predict).to_csv(self.config.path+"test/master_location.csv",seq=',',mode='wb',index=False,header=None)
 
 	def _deal_province_scale(self,n):	
 		try:
@@ -317,14 +368,14 @@ class Preprocessing(object):
 			location=self.location[n]
 			return location[0]
 		except:
-			return 0# 100.223723
+			return -1# 100.223723
 
 	def _deal_latitude_scale(self,n):
 		try:
 			location=self.location[n]
 			return location[1]
 		except:
-			return 0# 34.480485
+			return -1# 34.480485
 
 	def _deal_mean(self,n):
 		if n==0:
@@ -340,8 +391,8 @@ class Preprocessing(object):
 
 	def output_coor_scale(self):
 		X_train,X_predict=self.coor_scale()
-		pd.DataFrame(X_train).to_csv(self.config.path+"train/master_coor_mean.csv",seq=',',mode='wb',index=False,header=None)
-		pd.DataFrame(X_predict).to_csv(self.config.path+"test/master_coor_mean.csv",seq=',',mode='wb',index=False,header=None)
+		pd.DataFrame(X_train).to_csv(self.config.path+"train/master_coor.csv",seq=',',mode='wb',index=False,header=None)
+		pd.DataFrame(X_predict).to_csv(self.config.path+"test/master_coor.csv",seq=',',mode='wb',index=False,header=None)
 
 	def coor_scale(self):
 		features_category,features_numeric,reader_category,reader_numeric,len_train,len_predict=self.load_data()
@@ -365,13 +416,18 @@ class Preprocessing(object):
 
 		X=np.array(dumps).transpose()
 		print X.shape
+		
 		X_train=X[:len_train]
+		X_train=np.hstack((self.train_uids,X_train))
+		
 		X_predict=X[len_train:]
+		X_predict=np.hstack((self.predict_uids,X_predict))
+
 		return X_train,X_predict
 
 
 	def get_location(self):
-		instance=Load_origin_data(self.config)
+		instance=self.origin_instance
 		#读取feature type
 		features_category,features_numeric=instance.load_feature_type()
 		#读取train, predict数据
@@ -454,8 +510,16 @@ class Preprocessing(object):
 
 		cor_col=np.transpose(np.array(cor_col))
 		X=np.hstack((reader,cor_col))
+		
 		X_train=X[:len_train]
+		X_train=np.hstack((self.train_uids,X_train))
+		
 		X_predict=X[len_train:]
+		X_predict=np.hstack((self.predict_uids,X_predict))
+
+		X_train=X_train.astype(int)
+		X_predict=X_predict.astype(int)
+
 		print X.shape
 		return X_train,X_predict
 
@@ -483,8 +547,13 @@ class Preprocessing(object):
 			reader_numeric[feature]=reader_numeric[feature].apply(self.is_missing)
 
 		X=np.hstack((reader_category,reader_numeric))
+		
 		X_train=X[:len_train]
+		X_train=np.hstack((self.train_uids,X_train))
+		
 		X_predict=X[len_train:]
+		X_predict=np.hstack((self.predict_uids,X_predict))
+
 		print X.shape
 		return X_train,X_predict
 
@@ -526,16 +595,24 @@ class Preprocessing(object):
 		X=np.array(X).transpose()
 		X=np.hstack((X,month_dumps,week_dumps))
 		print X.shape
+		
 		X_train=X[:len_train]
+		X_train=np.hstack((self.train_uids,X_train))
+		
 		X_predict=X[len_train:]
-		pd.DataFrame(X_train).to_csv(self.config.path+"train/listingInfo_transform.csv",seq=',',mode='wb',index=False,header=None)
-		pd.DataFrame(X_predict).to_csv(self.config.path+"test/listingInfo_transform.csv",seq=',',mode='wb',index=False,header=None)
+		X_predict=np.hstack((self.predict_uids,X_predict))	
+
+		pd.DataFrame(X_train).to_csv(self.config.path+"train/master_listingInfo_transform.csv",seq=',',mode='wb',index=False,header=None)
+		pd.DataFrame(X_predict).to_csv(self.config.path+"test/master_listingInfo_transform.csv",seq=',',mode='wb',index=False,header=None)
 
 	def _date_to_year(self,n):
 		try:
 			t=time.strptime(str(n),"%Y/%m/%d")
 		except:
-			t=time.strptime(str(n),"%d/%m/%Y")
+			try:
+				t=time.strptime(str(n),"%d/%m/%Y")
+			except:
+				t=time.strptime(str(n),"%Y-%m-%d")
 		d=datetime.fromtimestamp(time.mktime(t))
 		return d.year
 
@@ -543,7 +620,10 @@ class Preprocessing(object):
 		try:
 			t=time.strptime(str(n),"%Y/%m/%d")
 		except:
-			t=time.strptime(str(n),"%d/%m/%Y")
+			try:
+				t=time.strptime(str(n),"%d/%m/%Y")
+			except:
+				t=time.strptime(str(n),"%Y-%m-%d")
 		d=datetime.fromtimestamp(time.mktime(t))
 		return d.month
 
@@ -551,7 +631,10 @@ class Preprocessing(object):
 		try:
 			t=time.strptime(str(n),"%Y/%m/%d")
 		except:
-			t=time.strptime(str(n),"%d/%m/%Y")
+			try:
+				t=time.strptime(str(n),"%d/%m/%Y")
+			except:
+				t=time.strptime(str(n),"%Y-%m-%d")
 		d=datetime.fromtimestamp(time.mktime(t))
 		return d.day
 
@@ -559,14 +642,20 @@ class Preprocessing(object):
 		try:
 			t=time.strptime(str(n),"%Y/%m/%d")
 		except:
-			t=time.strptime(str(n),"%d/%m/%Y")
+			try:
+				t=time.strptime(str(n),"%d/%m/%Y")
+			except:
+				t=time.strptime(str(n),"%Y-%m-%d")
 		d=datetime.fromtimestamp(time.mktime(t))
 		return d.weekday()+1
 	def _date_is_week_day(self,n):
 		try:
 			t=time.strptime(str(n),"%Y/%m/%d")
 		except:
-			t=time.strptime(str(n),"%d/%m/%Y")
+			try:
+				t=time.strptime(str(n),"%d/%m/%Y")
+			except:
+				t=time.strptime(str(n),"%Y-%m-%d")
 		d=datetime.fromtimestamp(time.mktime(t))
 		if d.weekday()<5:
 			return 1
@@ -575,11 +664,9 @@ class Preprocessing(object):
 
 
 	def education_transform(self):
-		f='category'
-		origin_instance=Load_origin_data(self.config)
+		f='ThirdParty'
+		origin_instance=self.origin_instance
 		#features=origin_instance.load_feature(f)
-		#features=['UserInfo_3','UserInfo_1','UserInfo_6','UserInfo_5','UserInfo_9','UserInfo_21','UserInfo_23','UserInfo_22','UserInfo_11','UserInfo_12','UserInfo_13','UserInfo_14','UserInfo_15','UserInfo_16','UserInfo_17']
-		#features=['UserInfo_6','UserInfo_5','UserInfo_9','UserInfo_21','UserInfo_11','UserInfo_12','UserInfo_13','UserInfo_16','UserInfo_17']
 		features=[
 			'UserInfo_3',
 			'UserInfo_1',
@@ -634,14 +721,18 @@ class Preprocessing(object):
 			#print tmp_l
 
 			cor=np.corrcoef(np.array(tmp_l)[:len_train],y)[0,1]
-			print cor
+			#print cor
 
 			l.append(tmp_l)
 		
 		X=np.array(l).transpose()
 		print X.shape
 		X_train=X[:len_train]
+		X_train=np.hstack((self.train_uids,X_train))
+		
 		X_predict=X[len_train:]
+		X_predict=np.hstack((self.predict_uids,X_predict))	
+
 		pd.DataFrame(X_train).to_csv(self.config.path+"train/master_"+f+"_weight.csv",seq=',',mode='wb',index=False,header=None)
 		pd.DataFrame(X_predict).to_csv(self.config.path+"test/master_"+f+"_weight.csv",seq=',',mode='wb',index=False,header=None)
 
@@ -651,9 +742,70 @@ class Preprocessing(object):
 		return float(self.feature_d[str(n)])/float(self.sample_num)
 
 
+	def part_features(self):
+		f='SocialNetwork'
+		origin_instance=self.origin_instance
+		features=origin_instance.load_feature(f)
+		print len(features)
+		reader1=pd.read_csv(self.config.path_origin_train_x,iterator=False,delimiter=',',usecols=tuple(features),encoding='utf-8')
+		reader2=pd.read_csv(self.config.path_origin_predict_x,iterator=False,delimiter=',',usecols=tuple(features),encoding='utf-8')
+		len_train=len(reader1)
+		len_predict=len(reader2)
+		reader=pd.concat([reader1,reader2],ignore_index=True)
+
+		for feature in features:
+			self.feature_min=np.min(reader[feature])
+			reader[feature]=reader[feature].apply(self._deal_move)
+		
+		X=np.array(reader)
+		X_train=X[:len_train]
+		print X_train.shape
+		print self.train_uids.shape
+		X_train=np.hstack((self.train_uids,X_train))
+		
+		X_predict=X[len_train:]
+		X_predict=np.hstack((self.predict_uids,X_predict))	
+
+		pd.DataFrame(X_train).to_csv(self.config.path+"train/master_"+f+"_part.csv",seq=',',mode='wb',index=False,header=None)
+		pd.DataFrame(X_predict).to_csv(self.config.path+"test/master_"+f+"_part.csv",seq=',',mode='wb',index=False,header=None)
+
+	def split_data(self):
+		reader1=pd.read_csv(self.config.path_origin_train_x,iterator=False,delimiter=',',usecols=tuple(['Idx']),encoding='utf-8')
+		reader2=pd.read_csv(self.config.path_origin_predict_x,iterator=False,delimiter=',',usecols=tuple(['Idx']),encoding='utf-8')
+		len_train=len(reader1)
+		len_predict=len(reader2)
+
+		reader=pd.read_csv(self.config.path+'all_data/feature_467/train.467.csv',iterator=False,delimiter=',',encoding='utf-8') #,header=None
+		X=np.array(reader)
+		X_train=X[:len_train]
+		X_predict=X[len_train:len_train+len_predict]
+		pd.DataFrame(X_train).to_csv(self.config.path+"train/master_feature_467.csv",seq=',',mode='wb',index=False,header=None)
+		pd.DataFrame(X_predict).to_csv(self.config.path+"test/master_feature_467.csv",seq=',',mode='wb',index=False,header=None)
+
+
+	def _deal_move(self,n):
+		if str(n)=='nan':
+			return -1-self.feature_min
+		else:
+			return n-self.feature_min
+
 def main():
 	instance=Preprocessing(Config())
-	instance.education_transform()
+	# instance.output_dumps_scale()
+	# instance.output_category_num_scale()
+	# instance.output_location_scale()
+	# instance.output_coor_scale()
+	# instance.output_city_rank()
+	# instance.output_missing_scale()
+	# instance.listinfo_transform()
+	# instance.education_transform()
+	#instance.part_features()
+	instance.split_data()
+	
+	#config_instance=Config()
+	#reader1=pd.read_csv(config_instance.path_origin_train_x,iterator=False,delimiter=',',usecols=tuple(['Idx','target']),encoding='utf-8')
+	#reader1.to_csv(config_instance.path+'train/target.csv',seq=',',mode='wb',index=False)
+
 	pass
 
 if __name__ == '__main__':

@@ -54,7 +54,8 @@ class Category_to_num(object):
 			rank_col=[]
 			for value in col:
 				rank_col.append(rank_dict[value])
-			cor=np.corrcoef(rank_col,y)
+
+			cor=np.corrcoef(np.array(rank_col,dtype=float)-np.min(rank_col)/(np.max(rank_col)-np.min(rank_col)),y)
 			cor=cor[0,1]
 			#print cor
 			if abs(cor)>best_cor:
@@ -71,56 +72,61 @@ class Category_to_num(object):
 		#features=['UserInfo_3','UserInfo_1','UserInfo_6','UserInfo_5','UserInfo_9','UserInfo_21','UserInfo_23','UserInfo_22','UserInfo_11','UserInfo_12','UserInfo_13','UserInfo_14','UserInfo_15','UserInfo_16','UserInfo_17']
 		
 		features=[
-			'UserInfo_3',
-			'UserInfo_1',
+			#'UserInfo_3',
+			# 'UserInfo_1',
 			'UserInfo_6',
 			'UserInfo_5',
 			'UserInfo_9',
 			'Education_Info1',
-			'Education_Info2',
+			# 'Education_Info2',
 			'Education_Info3',
 			'Education_Info4',
 			'Education_Info5',
 			'Education_Info6',
 			'Education_Info7',
-			'Education_Info8',
-			#'WeblogInfo_20',
+			# 'Education_Info8',
+			# #'WeblogInfo_20',
 			'UserInfo_21',
-			#'UserInfo_23',
-			'UserInfo_22',
-			'WeblogInfo_21',
-			'SocialNetwork_1',
-			'SocialNetwork_7',
-			'SocialNetwork_12',
-			'WeblogInfo_19',
-			'UserInfo_11',
-			'UserInfo_12',
-			'UserInfo_13',
-			'UserInfo_14',
-			'UserInfo_15',
-			'UserInfo_16',
-			'UserInfo_17',
-			'SocialNetwork_2'
+			# #'UserInfo_23',
+			#'UserInfo_22',
+			 'WeblogInfo_21',
+			 'SocialNetwork_1',
+			 'SocialNetwork_7',
+			 'SocialNetwork_12',
+			# 'WeblogInfo_19',
+			 'UserInfo_11',
+			 'UserInfo_12',
+			 'UserInfo_13',
+			# 'UserInfo_14',
+			# 'UserInfo_15',
+			 'UserInfo_16',
+			 'UserInfo_17',
+			 'SocialNetwork_2'
 		]
 
 		reader1=pd.read_csv(self.config.path_origin_train_x,iterator=False,delimiter=',',usecols=tuple(features),encoding='utf-8')
+		reader2=pd.read_csv(self.config.path_origin_predict_x,iterator=False,delimiter=',',usecols=tuple(features),encoding='utf-8')
 		y=origin_instance.load_train_y()
 		l=[]
 
 		for feature in features:
 			print 'feature:',feature
 			reader1[feature]=reader1[feature].apply(self._deal_nan)
+			reader2[feature]=reader2[feature].apply(self._deal_nan)
 			#cor=np.corrcoef(reader1[feature],y)
 			#print cor
 			#return
 			best_cor,best_dict,best_col=self.analysis_feature(reader1[feature],y)
 			print best_cor
+			self.best_dict=best_dict
+			reader2[feature]=reader2[feature].apply(self._deal_col)
 			#print best_dict
 			l.append(best_col)
 			#return 
 
 		l=np.array(l).transpose()
-		pd.DataFrame(l).to_csv(self.config.path+"train/master_category_to_num.csv",seq=',',mode='wb',index=False,header=None)
+		pd.DataFrame(l).to_csv(self.config.path+"train/master_category_to_num2.csv",seq=',',mode='wb',index=False,header=None)
+		reader2.to_csv(self.config.path+"test/master_category_to_num2.csv",seq=',',mode='wb',index=False,header=None)
 
 	def _deal_nan(self,n):
 		n2=n
@@ -131,6 +137,9 @@ class Category_to_num(object):
 			return -1
 		else:
 			return n2
+
+	def _deal_col(self,n):
+		return self.best_dict[n]
 
 def main():
 	instance=Category_to_num(Config())

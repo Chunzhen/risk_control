@@ -168,12 +168,19 @@ class Mboost(object):
 		scores=[]
 		part_uids=[]
 
-		# x_train=np.vstack((X_0,X_1))
-		# y_train=np.hstack((np.zeros(len(X_0)),np.ones(len(X_1))))
-		# dtrain=xgb.DMatrix(x_train,label=y_train)
+		x_train=np.vstack((X_0,X_1))
+		y_train=np.hstack((np.zeros(len(X_0)),np.ones(len(X_1))))
+		dtrain=xgb.DMatrix(x_train,label=y_train)
 
-		# log=xgb.cv(params,dtrain,round,nfold=5,metrics={'auc'},seed=7,show_progress=20)#,fpreproc=self.fpreproc ,obj=logregobj
-		# log.to_csv(self.config.path_train+level+'/'+name+'.log',seq=',',mode='wb',index=False)
+		log=xgb.cv(params,dtrain,round,nfold=5,metrics={'auc'},seed=1,verbose_eval=10)#,fpreproc=self.fpreproc ,obj=logregobj
+		log.to_csv(self.config.path_train+level+'/'+name+'.log',seq=',',mode='wb',index=False)
+
+		# model=xgb.train(params,dtrain,num_boost_round=round,verbose_eval=10,evals=[(dtrain,'train')])
+		# feature_score=model.get_fscore()
+		# sorted_features=sorted(feature_score.items(),key=lambda d:d[1],reverse=True)
+		# f=open(self.config.path+'train/features_importance.csv','wb')
+		# for feature,score in sorted_features:
+		# 	f.write(feature[1:]+','+str(score)+'\n')
 		# return 
 
 		threads=[]

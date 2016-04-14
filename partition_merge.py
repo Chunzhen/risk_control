@@ -19,29 +19,51 @@ class Partition_merge(object):
 		self.config=config
 
 	def load_clf_file(self,level,name):
-		reader=pd.read_csv(self.config.path_train+level+'/'+name+'.csv',iterator=False,delimiter=',',encoding='utf-8',header=None)
+		reader=pd.read_csv(self.config.path_predict+level+'/'+name+'.csv',iterator=False,delimiter=',',encoding='utf-8')
 		#print reader
 		d={}
-		for i in range(len(reader[0])):
-			d[reader[0][i]]=reader[1][i]
+		for i in range(len(reader['Idx'])):
+			d[reader['Idx'][i]]=reader['score'][i]
 		return d
+
+	def load_daily_file(self):
+		reader=pd.read_csv(self.config.path_verify+'daily_test.csv',iterator=False,delimiter=',',encoding='utf-8')
+		return np.array(reader)
+
+	def load_final_file(self):
+		reader=pd.read_csv(self.config.path_verify+'final_test.csv',iterator=False,delimiter=',',encoding='utf-8')
+		return np.array(reader)	
 
 	def level_data(self):
 		level='one'
-		clf_name='xgb1000_master_x'
-		clf_name2='rf200'
+		clf_name='xg1000_merge_dep6'
+		clf_name2='lr'
 		#读取验证集数据
 		load_data_instance=Load_origin_data(self.config)
 			
 		uid=load_data_instance.load_train_uid()
-		y=load_data_instance.load_train_y()
+		#y=load_data_instance.load_train_y()
+		daily_list=self.load_daily_file()
+		final_list=self.load_final_file()
 		test_uid_0=[]
 		test_uid_1=[]
-		for i in range(len(y)):
-			if y[i]==0:
-				test_uid_0.append(uid[i])
+		# for i in range(len(daily_list[:,0])):
+		# 	if daily_list[i,1]==1:
+		# 		test_uid_1.append(daily_list[i,0])
+		# 	else:
+		# 		test_uid_0.append(daily_list[i,0])
+
+		for i in range(len(final_list[:,0])):
+			if final_list[i,1]==1:
+				test_uid_1.append(final_list[i,0])
 			else:
-				test_uid_1.append(uid[i])
+				test_uid_0.append(final_list[i,0])
+		
+		# for i in range(len(y)):
+		# 	if y[i]==0:
+		# 		test_uid_0.append(uid[i])
+		# 	else:
+		# 		test_uid_1.append(uid[i])
 
 		test_uid_0=set(test_uid_0)
 		test_uid_1=set(test_uid_1)
@@ -71,9 +93,11 @@ class Partition_merge(object):
 			if uid in test_uid_0:
 				zero_diff.append(diff)
 				zero_index.append(i)
-			else:
+				#print 'bingo'
+			elif uid in test_uid_1:
 				one_diff.append(diff)
 				one_index.append(i)
+
 				pass
 				
 			i+=1

@@ -72,9 +72,9 @@ class Loginfo(object):
 
 		Idx_dict[str(Idxs[index])]=self._row_info(Idx_d,codes,types)
 		#self.output_info(Idx_dict)
-		return Idx_dict
+		return Idx_dict,len(codes)+len(types)+1
 
-	def load_info2(self):
+	def load_info2(self,limit):
 		"""
 		距离交易前1周
 		"""
@@ -112,7 +112,7 @@ class Loginfo(object):
 			
 
 			if Idx==Idxs[index]:
-				if (trading_date-log_date)/86400<=7:
+				if (trading_date-log_date)/86400<=limit:
 					Idx_d['log_len']+=1
 					Idx_d['code_'+str(code)]+=1
 					Idx_d['type_'+str(t)]+=1
@@ -149,7 +149,7 @@ class Loginfo(object):
 
 		Idx_dict[str(Idxs[index])]=self._row_info(Idx_d,codes,types)
 		#self.output_info(Idx_dict)
-		return Idx_dict
+		return Idx_dict,len(codes)+len(types)+1
 
 	def load_info3(self):
 		"""
@@ -252,14 +252,14 @@ class Loginfo(object):
 		origin_instance=Load_origin_data(self.config)
 		train_uids=origin_instance.load_train_uid()
 		test_uids=origin_instance.load_predict_uid()
-		Idx_dict=self.load_info()
+		Idx_dict,len_col=self.load_info()
 		f1=open(self.config.path+"train/master_loginfo1.csv",'wb')
 		f2=open(self.config.path+"test/master_loginfo1.csv",'wb')
 		for uid in train_uids:
 			if str(uid) in Idx_dict:
 				l=Idx_dict[str(uid)]
 			else:
-				l=[0 for i in range(105)]
+				l=[-1 for i in range(len_col)]
 			f1.write(str(uid))
 			for v in l:
 				f1.write(','+str(v))
@@ -269,7 +269,7 @@ class Loginfo(object):
 			if str(uid) in Idx_dict:
 				l=Idx_dict[str(uid)]
 			else:
-				l=[0 for i in range(105)]
+				l=[-1 for i in range(len_col)]
 			f2.write(str(uid))
 			for v in l:
 				f2.write(','+str(v))
@@ -278,18 +278,21 @@ class Loginfo(object):
 		f1.close()
 		f2.close()
 
-	def output_info2(self):
+	def output_info2(self,limit):
+		"""
+		limit 1,3,7
+		"""
 		origin_instance=Load_origin_data(self.config)
 		train_uids=origin_instance.load_train_uid()
 		test_uids=origin_instance.load_predict_uid()
-		Idx_dict=self.load_info2()
-		f1=open(self.config.path+"train/master_loginfo_limit7.csv",'wb')
-		f2=open(self.config.path+"test/master_loginfo_limit7.csv",'wb')
+		Idx_dict,len_col=self.load_info2(limit)
+		f1=open(self.config.path+"train/master_loginfo_limit"+str(limit)+".csv",'wb')
+		f2=open(self.config.path+"test/master_loginfo_limit"+str(limit)+".csv",'wb')
 		for uid in train_uids:
 			if str(uid) in Idx_dict:
 				l=Idx_dict[str(uid)]
 			else:
-				l=[0 for i in range(105)]
+				l=[-1 for i in range(len_col)]
 			f1.write(str(uid))
 			for v in l:
 				f1.write(','+str(v))
@@ -299,7 +302,7 @@ class Loginfo(object):
 			if str(uid) in Idx_dict:
 				l=Idx_dict[str(uid)]
 			else:
-				l=[0 for i in range(105)]
+				l=[-1 for i in range(len_col)]
 			f2.write(str(uid))
 			for v in l:
 				f2.write(','+str(v))
@@ -313,13 +316,13 @@ class Loginfo(object):
 		train_uids=origin_instance.load_train_uid()
 		test_uids=origin_instance.load_predict_uid()
 		Idx_dict=self.load_info3()
-		f1=open(self.config.path+"train/master_loginfo3.csv",'wb')
-		f2=open(self.config.path+"test/master_loginfo3.csv",'wb')
+		f1=open(self.config.path+"train/master_loginfo_time.csv",'wb')
+		f2=open(self.config.path+"test/master_loginfo_time.csv",'wb')
 		for uid in train_uids:
 			if str(uid) in Idx_dict:
 				l=Idx_dict[str(uid)]
 			else:
-				l=[0 for i in range(15)]
+				l=[-1 for i in range(15)]
 			f1.write(str(uid))
 			for v in l:
 				f1.write(','+str(v))
@@ -329,7 +332,7 @@ class Loginfo(object):
 			if str(uid) in Idx_dict:
 				l=Idx_dict[str(uid)]
 			else:
-				l=[0 for i in range(15)]
+				l=[-1 for i in range(15)]
 			f2.write(str(uid))
 			for v in l:
 				f2.write(','+str(v))
@@ -360,3 +363,14 @@ class Loginfo(object):
 		reader=pd.concat([reader_train,reader_test],ignore_index=True)
 		Idxs=self.get_Idx(reader['Idx'])
 		return Idxs,len_train,len_test
+
+def main():
+	instance=Loginfo(Config())
+	instance.output_info()
+	instance.output_info2(1)
+	instance.output_info2(3)
+	instance.output_info2(7)
+	instance.output_info3()
+
+if __name__ == '__main__':
+	main()

@@ -66,7 +66,7 @@ class Updateinfo(object):
 
 		Idx_dict[str(Idxs[index])]=self._row_info(Idx_d,types)
 
-		return Idx_dict		
+		return Idx_dict,len(types)+1
 
 	def load_info2(self,limit):
 		"""
@@ -129,27 +129,27 @@ class Updateinfo(object):
 				Idx_d['type_per_'+str(t2)]=0.0
 
 		Idx_dict[str(Idxs[index])]=self._row_info(Idx_d,types)
-		return Idx_dict
+		return Idx_dict,len(types)+1
 
 	def output_info(self,name):
 		origin_instance=Load_origin_data(self.config)
 		train_uids=origin_instance.load_train_uid()
 		test_uids=origin_instance.load_predict_uid()
 		if name=='master_updateinfo1':
-			Idx_dict=self.load_info()
+			Idx_dict,len_types=self.load_info()
 		elif name=='master_updateinfo_limit1':
-			Idx_dict=self.load_info2(1)
+			Idx_dict,len_types=self.load_info2(1)
 		elif name=='master_updateinfo_limit3':
-			Idx_dict=self.load_info2(3)
+			Idx_dict,len_types=self.load_info2(3)
 		elif name=='master_updateinfo_limit7':
-			Idx_dict=self.load_info2(7)
+			Idx_dict,len_types=self.load_info2(7)
 		f1=open(self.config.path+"train/"+name+".csv",'wb')
 		f2=open(self.config.path+"test/"+name+".csv",'wb')
 		for uid in train_uids:
 			if str(uid) in Idx_dict:
 				l=Idx_dict[str(uid)]
 			else:
-				l=[0 for i in range(111)]
+				l=[-1 for i in range(len_types)]
 			f1.write(str(uid))
 			for v in l:
 				f1.write(','+str(v))
@@ -159,7 +159,7 @@ class Updateinfo(object):
 			if str(uid) in Idx_dict:
 				l=Idx_dict[str(uid)]
 			else:
-				l=[0 for i in range(111)]
+				l=[-1 for i in range(len_types)]
 			f2.write(str(uid))
 			for v in l:
 				f2.write(','+str(v))
@@ -293,7 +293,7 @@ class Updateinfo(object):
 			if str(uid) in Idx_dict:
 				l=Idx_dict[str(uid)]
 			else:
-				l=[0 for i in range(15)]
+				l=[-1 for i in range(15)]
 			f1.write(str(uid))
 			for v in l:
 				f1.write(','+str(v))
@@ -303,7 +303,7 @@ class Updateinfo(object):
 			if str(uid) in Idx_dict:
 				l=Idx_dict[str(uid)]
 			else:
-				l=[0 for i in range(15)]
+				l=[-1 for i in range(15)]
 			f2.write(str(uid))
 			for v in l:
 				f2.write(','+str(v))
@@ -323,12 +323,12 @@ class Updateinfo(object):
 
 def main():
 	instance=Updateinfo(Config())
-	#instance.load_info()
-	#instance.output_info('master_updateinfo1')
+	instance.load_info()
+	instance.output_info('master_updateinfo1')
 	instance.output_info('master_updateinfo_limit1')
 	instance.output_info('master_updateinfo_limit3')
 	instance.output_info('master_updateinfo_limit7')
-	#instance.output_info3()
+	instance.output_info3()
 	pass
 
 if __name__ == '__main__':
